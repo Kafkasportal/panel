@@ -76,7 +76,7 @@ async function fetchUserFromDatabase(userId: string): Promise<User | null> {
     return null;
   }
 
-  const role = (data.role || "user") as UserRole;
+  const role = (data.role || "uye") as UserRole;
   const permissions = getPermissionsForRole(role);
 
   return {
@@ -120,33 +120,39 @@ export const useUserStore = create<UserState>()((set) => ({
     // Initial session check - only run once
     supabase.auth
       .getSession()
-      .then(async ({ data: { session } }: { data: { session: Session | null } }) => {
-        if (session?.user) {
-          // Fetch user data from public.users table
-          const userData = await fetchUserFromDatabase(session.user.id);
-          if (userData) {
-            set({
-              user: userData,
-              isAuthenticated: true,
-            });
-          } else {
-            // Fallback to basic user data if database fetch fails
-            set({
-              user: {
-                id: session.user.id,
-                name: session.user.email || "Kullanıcı",
-                email: session.user.email || "",
-                role: "user",
-                isActive: true,
-                permissions: [],
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-              isAuthenticated: true,
-            });
+      .then(
+        async ({
+          data: { session },
+        }: {
+          data: { session: Session | null };
+        }) => {
+          if (session?.user) {
+            // Fetch user data from public.users table
+            const userData = await fetchUserFromDatabase(session.user.id);
+            if (userData) {
+              set({
+                user: userData,
+                isAuthenticated: true,
+              });
+            } else {
+              // Fallback to basic user data if database fetch fails
+              set({
+                user: {
+                  id: session.user.id,
+                  name: session.user.email || "Kullanıcı",
+                  email: session.user.email || "",
+                  role: "uye",
+                  isActive: true,
+                  permissions: [],
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                },
+                isAuthenticated: true,
+              });
+            }
           }
-        }
-      });
+        },
+      );
 
     // Listen for auth changes - only attach once
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -166,7 +172,7 @@ export const useUserStore = create<UserState>()((set) => ({
                 id: session.user.id,
                 name: session.user.email || "Kullanıcı",
                 email: session.user.email || "",
-                role: "user",
+                role: "uye",
                 isActive: true,
                 permissions: [],
                 createdAt: new Date(),
@@ -211,10 +217,11 @@ export const useUserStore = create<UserState>()((set) => ({
 
     try {
       // Authenticate with Supabase
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (authError) {
         console.error("❌ Login error:", authError);
@@ -237,9 +244,11 @@ export const useUserStore = create<UserState>()((set) => ({
       const userData = await fetchUserFromDatabase(authData.user.id);
 
       if (!userData) {
-        console.warn("⚠️ User data not found in database, using basic user info");
+        console.warn(
+          "⚠️ User data not found in database, using basic user info",
+        );
         // Fallback to basic user data
-        const role = (authData.user.user_metadata?.role || "user") as UserRole;
+        const role = (authData.user.user_metadata?.role || "uye") as UserRole;
         set({
           user: {
             id: authData.user.id,
@@ -269,7 +278,10 @@ export const useUserStore = create<UserState>()((set) => ({
     } catch (error) {
       console.error("❌ Login exception:", error);
       set({
-        error: error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Beklenmeyen bir hata oluştu",
         isLoading: false,
       });
       return false;
