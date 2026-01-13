@@ -31,7 +31,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
-import { collectKumbara, fetchKumbaraByCode } from '@/lib/mock-service'
+import { collectKumbara, fetchKumbaraByCode } from '@/lib/supabase-service'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Kumbara } from '@/types'
 import { QRScannerDialog } from './qr-scanner-dialog'
@@ -147,9 +147,8 @@ export function KumbaraToplamaDialog({
         if (!selectedKumbara) return
 
         mutate({
-            kumbaraId: selectedKumbara.id,
+            id: typeof selectedKumbara.id === 'string' ? parseInt(selectedKumbara.id, 10) : selectedKumbara.id,
             tutar: data.tutar,
-            notlar: data.notlar,
         })
     }
 

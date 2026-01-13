@@ -719,11 +719,8 @@ export async function fetchPayments(options?: {
 export async function fetchDashboardStats() {
   const supabase = getSupabaseClient();
 
-  // Supabase client yoksa mock data döndür
   if (!supabase) {
-    const { fetchDashboardStats: mockFetchDashboardStats } =
-      await import("./mock-service");
-    return mockFetchDashboardStats();
+    throw new Error("Supabase client is not available");
   }
 
   // Bu ayın başlangıcını hesapla
@@ -866,11 +863,34 @@ export async function fetchDashboardStats() {
     };
   } catch (error) {
     console.error("[Dashboard] Error fetching data:", error);
-    // Hata durumunda mock service'e fallback yap
-    const { fetchDashboardStats: mockFetchDashboardStats } =
-      await import("./mock-service");
-    return mockFetchDashboardStats();
+    throw error;
   }
+}
+
+// ============================================
+// USERS
+// ============================================
+export async function fetchUsers(): Promise<User[]> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    throw new Error("Supabase client is not available");
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, name, email, role")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+
+  type UserRow = Database["public"]["Tables"]["users"]["Row"];
+  return (data || []).map((u: UserRow) => ({
+    id: u.id,
+    name: u.name || u.email || "Kullanıcı",
+    email: u.email,
+    role: u.role as User["role"],
+  }));
 }
 
 // ============================================

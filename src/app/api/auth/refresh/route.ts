@@ -36,19 +36,21 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    // Access token: 24 hours expiry (JWT with 24h expiry)
     response.cookies.set("sb-access-token", data.session.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24, // 24 hours
       path: "/",
     })
 
+    // Refresh token: 30 days expiry
     response.cookies.set("sb-refresh-token", data.session.refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
       path: "/",
     })
 

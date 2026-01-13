@@ -37,6 +37,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateKumbara } from "@/hooks/use-api";
+import { fetchUsers } from "@/lib/supabase-service";
 import { QRScannerDialog } from "./qr-scanner-dialog";
 
 // Lazy load QRCode component
@@ -64,14 +65,6 @@ interface YeniKumbaraDialogProps {
   initialQrCode?: string;
 }
 
-// Mock sorumlular listesi
-const MOCK_SORUMLULAR = [
-  { id: "1", name: "Ahmet Yılmaz" },
-  { id: "2", name: "Mehmet Demir" },
-  { id: "3", name: "Ali Kaya" },
-  { id: "4", name: "Fatma Şahin" },
-];
-
 // Otomatik QR kod üretici
 function generateAutoQRCode(): string {
   const year = new Date().getFullYear();
@@ -95,6 +88,8 @@ export function YeniKumbaraDialog({
     konum: string;
   } | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
+  const [sorumlular, setSorumlular] = useState<{ id: string; name: string }[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   const form = useForm<KumbaraFormData>({
     resolver: zodResolver(kumbaraFormSchema),
@@ -116,6 +111,29 @@ export function YeniKumbaraDialog({
       setCurrentStep("form");
     }
   }, [initialQrCode, form]);
+
+  // Kullanıcıları yükle
+  useEffect(() => {
+    if (open) {
+      setIsLoadingUsers(true);
+      fetchUsers()
+        .then((users) => {
+          setSorumlular(
+            users.map((u) => ({
+              id: u.id,
+              name: u.name,
+            }))
+          );
+        })
+        .catch((error) => {
+          console.error("Error fetching users:", error);
+          toast.error("Kullanıcılar yüklenemedi");
+        })
+        .finally(() => {
+          setIsLoadingUsers(false);
+        });
+    }
+  }, [open]);
 
   // Dialog açıldığında reset
   useEffect(() => {
@@ -588,11 +606,21 @@ export function YeniKumbaraDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {MOCK_SORUMLULAR.map((sorumlu) => (
-                                <SelectItem key={sorumlu.id} value={sorumlu.id}>
-                                  {sorumlu.name}
+                              {isLoadingUsers ? (
+                                <SelectItem value="loading" disabled>
+                                  Yükleniyor...
                                 </SelectItem>
-                              ))}
+                              ) : sorumlular.length === 0 ? (
+                                <SelectItem value="none" disabled>
+                                  Kullanıcı bulunamadı
+                                </SelectItem>
+                              ) : (
+                                sorumlular.map((sorumlu) => (
+                                  <SelectItem key={sorumlu.id} value={sorumlu.id}>
+                                    {sorumlu.name}
+                                  </SelectItem>
+                                ))
+                              )}
                             </SelectContent>
                           </Select>
                           <FormMessage />

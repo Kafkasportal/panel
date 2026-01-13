@@ -1,113 +1,31 @@
-/**
- * API Helper Utilities
- * 
- * Common utilities for API routes including error handling,
- * rate limiting, and response formatting.
- */
-
 import { NextRequest, NextResponse } from "next/server"
-import { ZodError } from "zod"
-import {
-  createRateLimiter,
-  RateLimitPresets,
-  getClientIp,
-  type RateLimitConfig,
-} from "@/lib/rate-limit"
+import { createRateLimiter, type RateLimitConfig, RateLimitPresets, getClientIp } from "@/lib/rate-limit"
 
 // Re-export RateLimitPresets for convenience
 export { RateLimitPresets }
 
 /**
- * Standard API error response format
- */
-export interface ApiError {
-  error: string
-  message?: string
-  details?: unknown
-  code?: string
-}
-
-/**
- * Create a standardized error response
+ * Standardized error response
  */
 export function createErrorResponse(
   error: unknown,
-  defaultMessage: string,
+  message: string,
   status: number = 500
-): NextResponse<ApiError> {
-  // Zod validation errors
-  if (error instanceof ZodError) {
-    return NextResponse.json(
-      {
-        error: "Validation hatası",
-        message: "Girilen veriler geçersiz",
-        details: error.issues,
-        code: "VALIDATION_ERROR",
-      },
-      { status: 400 }
-    )
-  }
+): NextResponse {
+  const errorMessage = error instanceof Error ? error.message : String(error)
 
-  // Standard Error objects
-  if (error instanceof Error) {
-    // Check for specific error types
-    if (error.message.includes("duplicate") || error.message.includes("unique")) {
-      return NextResponse.json(
-        {
-          error: "Çakışma hatası",
-          message: "Bu kayıt zaten mevcut",
-          details: error.message,
-          code: "DUPLICATE_ERROR",
-        },
-        { status: 409 }
-      )
-    }
-
-    if (error.message.includes("not found") || error.message.includes("bulunamadı")) {
-      return NextResponse.json(
-        {
-          error: "Bulunamadı",
-          message: error.message || "İstenen kayıt bulunamadı",
-          code: "NOT_FOUND",
-        },
-        { status: 404 }
-      )
-    }
-
-    if (error.message.includes("permission") || error.message.includes("yetki")) {
-      return NextResponse.json(
-        {
-          error: "Yetki hatası",
-          message: error.message || "Bu işlem için yetkiniz yok",
-          code: "PERMISSION_ERROR",
-        },
-        { status: 403 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        error: defaultMessage,
-        message: error.message,
-        code: "ERROR",
-      },
-      { status }
-    )
-  }
-
-  // Unknown error type
   return NextResponse.json(
     {
-      error: defaultMessage,
-      message: "Beklenmeyen bir hata oluştu",
-      code: "UNKNOWN_ERROR",
+      error: message,
+      message: errorMessage,
+      status,
     },
-    { status: 500 }
+    { status }
   )
 }
 
 /**
- * Create a standardized success response
+ * Standardized success response
  */
 export function createSuccessResponse<T>(
   data: T,
@@ -124,34 +42,31 @@ export function createSuccessResponse<T>(
 }
 
 /**
- * Rate limit middleware wrapper
+ * Rate limiting wrapper
  */
 export function withRateLimit(
   handler: (req: NextRequest) => Promise<NextResponse>,
   config: RateLimitConfig = RateLimitPresets.standard
 ) {
-  const rateLimiter = createRateLimiter(config)
+  const limiter = createRateLimiter(config)
 
   return async (req: NextRequest) => {
-    const rateLimitResult = rateLimiter(req)
+    const result = limiter(req)
 
-    if (rateLimitResult.limited) {
+    if (result.limited) {
+      const resetSeconds = Math.ceil((result.resetTime - Date.now()) / 1000)
       return NextResponse.json(
         {
-          error: "Rate limit aşıldı",
-          message: "Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.",
-          code: "RATE_LIMIT_EXCEEDED",
-          resetTime: rateLimitResult.resetTime,
+          error: "Too many requests",
+          message: `Rate limit exceeded. Try again in ${resetSeconds} seconds.`,
         },
         {
           status: 429,
           headers: {
-            "X-RateLimit-Limit": config.limit.toString(),
-            "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
-            "X-RateLimit-Reset": new Date(rateLimitResult.resetTime).toISOString(),
-            "Retry-After": Math.ceil(
-              (rateLimitResult.resetTime - Date.now()) / 1000
-            ).toString(),
+            "X-RateLimit-Limit": String(config.limit),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(result.resetTime),
+            "Retry-After": String(resetSeconds),
           },
         }
       )
@@ -160,19 +75,16 @@ export function withRateLimit(
     const response = await handler(req)
 
     // Add rate limit headers to successful responses
-    response.headers.set("X-RateLimit-Limit", config.limit.toString())
-    response.headers.set("X-RateLimit-Remaining", rateLimitResult.remaining.toString())
-    response.headers.set(
-      "X-RateLimit-Reset",
-      new Date(rateLimitResult.resetTime).toISOString()
-    )
+    response.headers.set("X-RateLimit-Limit", String(config.limit))
+    response.headers.set("X-RateLimit-Remaining", String(result.remaining))
+    response.headers.set("X-RateLimit-Reset", String(result.resetTime))
 
     return response
   }
 }
 
 /**
- * Async handler wrapper with error handling
+ * Error handling wrapper
  */
 export function withErrorHandling(
   handler: (req: NextRequest) => Promise<NextResponse>,
@@ -182,7 +94,6 @@ export function withErrorHandling(
     try {
       return await handler(req)
     } catch (error) {
-      console.error(`API Error [${req.method} ${req.nextUrl.pathname}]:`, error)
       return createErrorResponse(error, defaultErrorMessage)
     }
   }
@@ -207,10 +118,69 @@ export function withApiMiddleware(
 }
 
 /**
+ * Combined wrapper: authentication + rate limiting + error handling
+ * Use this for protected API routes
+ * 
+ * Note: This function wraps withAuth, so authentication happens before
+ * rate limiting and error handling for better security
+ */
+export function withProtectedApi(
+  handler: (
+    req: NextRequest,
+    user: { id: string; email: string; role: string }
+  ) => Promise<NextResponse>,
+  options: {
+    defaultErrorMessage: string
+    rateLimit?: RateLimitConfig
+    requiredPermissions?: string[]
+  }
+) {
+  const { defaultErrorMessage, rateLimit = RateLimitPresets.standard, requiredPermissions } = options
+
+  // Import withAuth to wrap the handler
+  // We need to import it here to avoid circular dependency issues
+  return async (req: NextRequest) => {
+    const { withAuth } = await import("@/lib/auth-middleware")
+    const authenticatedHandler = withAuth(handler, { requiredPermissions })
+    return withApiMiddleware(authenticatedHandler, { defaultErrorMessage, rateLimit })(req)
+  }
+}
+
+/**
+ * Combined wrapper for dynamic routes with params
+ * Use this for protected API routes with [id] or similar dynamic segments
+ */
+export function withProtectedApiParams<T extends Record<string, string>>(
+  handler: (
+    req: NextRequest,
+    user: { id: string; email: string; role: string },
+    params: Promise<T>
+  ) => Promise<NextResponse>,
+  options: {
+    defaultErrorMessage: string
+    rateLimit?: RateLimitConfig
+    requiredPermissions?: string[]
+  }
+) {
+  const { defaultErrorMessage, rateLimit = RateLimitPresets.standard, requiredPermissions } = options
+
+  return async (req: NextRequest, context: { params: Promise<T> }) => {
+    const { withAuth } = await import("@/lib/auth-middleware")
+    const authenticatedHandler = withAuth(
+      async (req: NextRequest, user: { id: string; email: string; role: string }) => {
+        return handler(req, user, context.params)
+      },
+      { requiredPermissions }
+    )
+    return withApiMiddleware(authenticatedHandler, { defaultErrorMessage, rateLimit })(req)
+  }
+}
+
+/**
  * Get client IP from request
  */
 export function getRequestIp(req: NextRequest): string {
-  return getClientIp(req)
+  return getClientIp(req as unknown as Request)
 }
 
 /**
@@ -242,13 +212,10 @@ export function validateMethod(
   allowedMethods: string[]
 ): NextResponse | null {
   if (!allowedMethods.includes(req.method)) {
-    return NextResponse.json(
-      {
-        error: "Method not allowed",
-        message: `${req.method} metodu bu endpoint için desteklenmiyor`,
-        code: "METHOD_NOT_ALLOWED",
-      },
-      { status: 405 }
+    return createErrorResponse(
+      new Error(`Method ${req.method} not allowed`),
+      `Bu endpoint sadece ${allowedMethods.join(", ")} metodlarını destekler`,
+      405
     )
   }
   return null

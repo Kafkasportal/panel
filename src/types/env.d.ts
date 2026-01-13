@@ -11,8 +11,6 @@ declare namespace NodeJS {
         readonly NEXT_PUBLIC_API_URL: string
         readonly NEXT_PUBLIC_API_TIMEOUT: string
 
-        // Mock Mode
-        readonly NEXT_PUBLIC_USE_MOCK_API: 'true' | 'false'
 
         // Authentication
         readonly NEXT_PUBLIC_AUTH_COOKIE_NAME: string

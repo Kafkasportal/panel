@@ -2,14 +2,17 @@ import { NextRequest } from "next/server"
 import { fetchDonations, createDonation } from "@/lib/supabase-service"
 import { donationSchema, donationQuerySchema } from "@/lib/validations/donations"
 import {
-  withApiMiddleware,
+  withProtectedApi,
   createSuccessResponse,
   parseJsonBody,
   validateMethod,
   RateLimitPresets,
 } from "@/lib/api-helpers"
 
-async function handleGet(req: NextRequest) {
+async function handleGet(
+  req: NextRequest,
+  _user: { id: string; email: string; role: string }
+) {
   const methodError = validateMethod(req, ["GET"])
   if (methodError) return methodError
 
@@ -32,7 +35,10 @@ async function handleGet(req: NextRequest) {
   return createSuccessResponse(result)
 }
 
-async function handlePost(req: NextRequest) {
+async function handlePost(
+  req: NextRequest,
+  _user: { id: string; email: string; role: string }
+) {
   const methodError = validateMethod(req, ["POST"])
   if (methodError) return methodError
 
@@ -47,12 +53,14 @@ async function handlePost(req: NextRequest) {
   return createSuccessResponse(result, 201)
 }
 
-export const GET = withApiMiddleware(handleGet, {
+export const GET = withProtectedApi(handleGet, {
   defaultErrorMessage: "Bağışlar getirilemedi",
   rateLimit: RateLimitPresets.lenient,
+  requiredPermissions: ["donations.view"],
 })
 
-export const POST = withApiMiddleware(handlePost, {
+export const POST = withProtectedApi(handlePost, {
   defaultErrorMessage: "Bağış oluşturulamadı",
   rateLimit: RateLimitPresets.standard,
+  requiredPermissions: ["donations.create"],
 })

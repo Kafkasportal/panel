@@ -2,14 +2,17 @@ import { NextRequest } from "next/server"
 import { fetchMembers, createMember } from "@/lib/supabase-service"
 import { memberSchema, memberQuerySchema } from "@/lib/validations/members"
 import {
-  withApiMiddleware,
+  withProtectedApi,
   createSuccessResponse,
   parseJsonBody,
   validateMethod,
   RateLimitPresets,
 } from "@/lib/api-helpers"
 
-async function handleGet(req: NextRequest) {
+async function handleGet(
+  req: NextRequest,
+  _user: { id: string; email: string; role: string }
+) {
   const methodError = validateMethod(req, ["GET"])
   if (methodError) return methodError
 
@@ -30,7 +33,10 @@ async function handleGet(req: NextRequest) {
   return createSuccessResponse(result)
 }
 
-async function handlePost(req: NextRequest) {
+async function handlePost(
+  req: NextRequest,
+  _user: { id: string; email: string; role: string }
+) {
   const methodError = validateMethod(req, ["POST"])
   if (methodError) return methodError
 
@@ -45,12 +51,14 @@ async function handlePost(req: NextRequest) {
   return createSuccessResponse(result, 201)
 }
 
-export const GET = withApiMiddleware(handleGet, {
+export const GET = withProtectedApi(handleGet, {
   defaultErrorMessage: "Üyeler getirilemedi",
   rateLimit: RateLimitPresets.lenient,
+  requiredPermissions: ["members.view"],
 })
 
-export const POST = withApiMiddleware(handlePost, {
+export const POST = withProtectedApi(handlePost, {
   defaultErrorMessage: "Üye oluşturulamadı",
   rateLimit: RateLimitPresets.standard,
+  requiredPermissions: ["members.create"],
 })

@@ -8,9 +8,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { NAV_ITEMS } from "@/lib/constants";
-import { CURRENT_USER } from "@/lib/mock-data";
 import { cn, getInitials } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
+import { useUserStore } from "@/stores/user-store";
 import type { NavItem } from "@/types";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -196,6 +196,7 @@ const NavItemComponent = memo(function NavItemComponent({
 
 const UserSection = memo(function UserSection() {
   const { isCollapsed } = useSidebarStore();
+  const { user } = useUserStore();
 
   return (
     <div
@@ -206,16 +207,16 @@ const UserSection = memo(function UserSection() {
     >
       <Avatar className="ring-sidebar-primary/40 h-10 w-10 shadow-md ring-2">
         <AvatarFallback className="from-sidebar-primary to-warning text-sidebar-primary-foreground bg-linear-to-br text-sm font-semibold">
-          {getInitials(CURRENT_USER.name)}
+          {user ? getInitials(user.name) : "U"}
         </AvatarFallback>
       </Avatar>
       {!isCollapsed && (
         <div className="min-w-0 flex-1">
           <p className="text-sidebar-foreground truncate text-sm font-semibold">
-            {CURRENT_USER.name}
+            {user?.name || "Kullanıcı"}
           </p>
           <p className="text-sidebar-foreground/50 truncate text-xs">
-            {CURRENT_USER.email}
+            {user?.email || ""}
           </p>
         </div>
       )}

@@ -33,7 +33,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
-import { CURRENT_USER } from "@/lib/mock-data";
 import { getInitials } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import { useUserStore } from "@/stores/user-store";
@@ -49,7 +48,7 @@ const CommandPalette = lazy(() =>
 
 export const Header = memo(function Header() {
   const { isCollapsed, setCollapsed } = useSidebarStore();
-  const { logout } = useUserStore();
+  const { logout, user } = useUserStore();
   const router = useRouter();
   const [commandOpen, setCommandOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -159,20 +158,20 @@ export const Header = memo(function Header() {
               >
                 <Avatar className="ring-primary/20 h-8 w-8 shadow-sm ring-2">
                   <AvatarFallback className="from-primary to-accent text-primary-foreground bg-gradient-to-br text-xs font-semibold">
-                    {getInitials(CURRENT_USER.name)}
+                    {user ? getInitials(user.name) : "U"}
                   </AvatarFallback>
                 </Avatar>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="max-w-20 sm:max-w-25 truncate text-sm font-medium">
-                        {CURRENT_USER.name}
+                        {user?.name || "Kullanıcı"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{CURRENT_USER.name}</p>
+                      <p>{user?.name || "Kullanıcı"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {CURRENT_USER.email}
+                        {user?.email || ""}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -185,9 +184,9 @@ export const Header = memo(function Header() {
             >
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-semibold">{CURRENT_USER.name}</p>
+                  <p className="text-sm font-semibold">{user?.name || "Kullanıcı"}</p>
                   <p className="text-muted-foreground text-xs">
-                    {CURRENT_USER.email}
+                    {user?.email || ""}
                   </p>
                 </div>
               </DropdownMenuLabel>

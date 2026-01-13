@@ -2,14 +2,17 @@ import { NextRequest } from "next/server"
 import { fetchDocuments, uploadDocument } from "@/lib/supabase-service"
 import { documentQuerySchema } from "@/lib/validations/documents"
 import {
-  withApiMiddleware,
+  withProtectedApi,
   createErrorResponse,
   createSuccessResponse,
   validateMethod,
   RateLimitPresets,
 } from "@/lib/api-helpers"
 
-async function handleGet(req: NextRequest) {
+async function handleGet(
+  req: NextRequest,
+  _user: { id: string; email: string; role: string }
+) {
   const methodError = validateMethod(req, ["GET"])
   if (methodError) return methodError
 
@@ -32,7 +35,10 @@ async function handleGet(req: NextRequest) {
   return createSuccessResponse(result)
 }
 
-async function handlePost(req: NextRequest) {
+async function handlePost(
+  req: NextRequest,
+  _user: { id: string; email: string; role: string }
+) {
   const methodError = validateMethod(req, ["POST"])
   if (methodError) return methodError
 
@@ -55,12 +61,14 @@ async function handlePost(req: NextRequest) {
   return createSuccessResponse(result, 201)
 }
 
-export const GET = withApiMiddleware(handleGet, {
+export const GET = withProtectedApi(handleGet, {
   defaultErrorMessage: "Dokümanlar getirilemedi",
   rateLimit: RateLimitPresets.lenient,
+  requiredPermissions: ["documents.view"],
 })
 
-export const POST = withApiMiddleware(handlePost, {
+export const POST = withProtectedApi(handlePost, {
   defaultErrorMessage: "Doküman yüklenemedi",
   rateLimit: RateLimitPresets.standard,
+  requiredPermissions: ["documents.create"],
 })

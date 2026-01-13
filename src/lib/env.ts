@@ -15,7 +15,6 @@ const envSchema = z.object({
   // Optional: API Configuration
   NEXT_PUBLIC_API_URL: z.string().optional(),
   NEXT_PUBLIC_API_TIMEOUT: z.string().optional(),
-  NEXT_PUBLIC_USE_MOCK_API: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>
@@ -30,7 +29,6 @@ function validateEnv(): Env {
       SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
       NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
       NEXT_PUBLIC_API_TIMEOUT: process.env.NEXT_PUBLIC_API_TIMEOUT,
-      NEXT_PUBLIC_USE_MOCK_API: process.env.NEXT_PUBLIC_USE_MOCK_API,
     }
 
     const validatedEnv = envSchema.parse(env)

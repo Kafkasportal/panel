@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DatePicker } from '@/components/shared/date-picker'
 import { useCreateBeneficiary } from '@/hooks/use-api'
 import {
   COUNTRIES,
@@ -84,6 +85,7 @@ export function NewBeneficiaryDialog({
 }: NewBeneficiaryDialogProps) {
   const router = useRouter()
   const [mernisKontrol, setMernisKontrol] = useState(false)
+  const [dogumTarihi, setDogumTarihi] = useState<Date | undefined>()
 
   const form = useForm<NewBeneficiaryFormData>({
     resolver: zodResolver(newBeneficiarySchema),
@@ -106,11 +108,16 @@ export function NewBeneficiaryDialog({
     onSuccess: (newItem) => {
       toast.success('Kayıt başarıyla oluşturuldu')
       form.reset()
+      setDogumTarihi(undefined)
+      setMernisKontrol(false)
       onOpenChange(false)
       // Navigate after dialog closes
       setTimeout(() => {
         router.push(`/sosyal-yardim/ihtiyac-sahipleri/${newItem.id}`)
       }, 100)
+    },
+    onError: (error) => {
+      toast.error(error?.message || 'Kayıt oluşturulurken bir hata oluştu')
     },
   })
 
@@ -271,7 +278,17 @@ export function NewBeneficiaryDialog({
                 <FormItem>
                   <FormLabel>Doğum Tarihi</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <DatePicker
+                      date={dogumTarihi}
+                      setDate={(date) => {
+                        setDogumTarihi(date)
+                        field.onChange(
+                          date ? date.toISOString().split('T')[0] : ''
+                        )
+                      }}
+                      placeholder="gg.aa.rrrr"
+                      className="w-full"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -415,7 +432,7 @@ export function NewBeneficiaryDialog({
                 Kapat
               </Button>
               <Button
-                onClick={form.handleSubmit(onSubmit)}
+                type="submit"
                 disabled={!isFormValid || isPending}
               >
                 {isPending ? 'Kaydediliyor...' : 'Kaydet'}
