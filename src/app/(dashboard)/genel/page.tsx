@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Lazy load chart component
 const AidDistributionChart = dynamic(
@@ -34,6 +34,7 @@ const AidDistributionChart = dynamic(
 import { PageHeader } from "@/components/shared/page-header";
 import { QueryError } from "@/components/shared/query-error";
 import { StatCard } from "@/components/shared/stat-card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,12 @@ export default function DashboardPage() {
 
   // Son üyeler
   const { data: membersData } = useMembers({ page: 1, limit: 5 });
+
+  // Memoize recent members to prevent recalculation
+  const recentMembers = useMemo(
+    () => membersData?.data?.slice(0, 5) || [],
+    [membersData?.data]
+  );
 
   useEffect(() => {
     setIsMounted(true);
@@ -308,8 +315,8 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-2">
-              {membersData?.data && membersData.data.length > 0 ? (
-                membersData.data.slice(0, 5).map((member) => (
+              {recentMembers.length > 0 ? (
+                recentMembers.map((member) => (
                   <div
                     key={member.id}
                     className="group flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
@@ -348,11 +355,14 @@ export default function DashboardPage() {
                 ))
               ) : (
                 <EmptyState
-                  icon={Users}
+                  variant="no-data"
                   title="Henüz üye kaydı yok"
                   description="Yeni üye eklemek için başlayın"
-                  actionLabel="Yeni Üye Ekle"
-                  actionHref="/uyeler/yeni"
+                  action={
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href="/uyeler/yeni">Yeni Üye Ekle</Link>
+                    </Button>
+                  }
                 />
               )}
             </div>
@@ -363,33 +373,6 @@ export default function DashboardPage() {
   );
 }
 
-// Enhanced Empty State Component
-function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  actionLabel,
-  actionHref,
-}: {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  actionLabel: string;
-  actionHref: string;
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center py-8 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/50 mb-4">
-        <Icon className="h-8 w-8 text-muted-foreground/50" />
-      </div>
-      <p className="font-semibold mb-1">{title}</p>
-      <p className="text-muted-foreground text-sm mb-4">{description}</p>
-      <Button variant="outline" size="sm" asChild>
-        <Link href={actionHref}>{actionLabel}</Link>
-      </Button>
-    </div>
-  );
-}
 
 // Enhanced Loading Skeleton
 function DashboardSkeleton() {

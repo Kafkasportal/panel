@@ -123,6 +123,53 @@
     will-change: transform;
     transform: translateZ(0);
   }
+
+  /* Enhanced Focus Indicators - WCAG 2.1 AA Compliant */
+  /* Focus ring with high contrast for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) - 2px);
+  }
+
+  /* Skip link for main content - Accessibility best practice */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 100;
+    border-radius: 0 0 4px 0;
+    font-weight: 600;
+    transition: top 0.2s ease;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
+
+  /* Reduced motion support - Respect user preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    :root {
+      --border: 0 0% 20%;
+      --ring: 0 0% 0%;
+    }
+  }
 }
 
 /* Custom Utilities */
@@ -208,10 +255,36 @@
       0 2px 4px -2px hsl(var(--foreground) / 0.05);
   }
 
-  /* Button press effect */
+  /* Button press effect - Enhanced micro-interaction */
   .btn-press:active {
     transform: scale(0.97);
-    transition: transform 0.1s ease;
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Smooth hover transitions for interactive elements */
+  button,
+  a,
+  [role="button"],
+  [tabindex="0"] {
+    transition: 
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Card hover effect - Subtle lift */
+  .card-hover {
+    transition: 
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 4px 12px -2px hsl(var(--primary) / 0.08),
+      0 2px 4px -2px hsl(var(--foreground) / 0.05);
   }
 
   /* Skeleton loading animation */

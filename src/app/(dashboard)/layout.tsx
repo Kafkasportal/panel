@@ -22,16 +22,26 @@ export default function DashboardLayout({
         <>
             <ProgressBar />
             <div className="flex h-screen overflow-hidden">
-                {/* Sidebar */}
-                <Sidebar />
+                {/* Sidebar - Navigation landmark */}
+                <nav aria-label="Ana navigasyon">
+                    <Sidebar />
+                </nav>
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Header */}
-                    <Header />
+                    {/* Header - Banner landmark */}
+                    <header role="banner">
+                        <Header />
+                    </header>
 
-                    {/* Page Content - Standard padding: mobile p-4, desktop p-6 */}
-                    <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 lg:p-6">
+                    {/* Page Content - Main landmark */}
+                    <main 
+                        id="main-content" 
+                        role="main"
+                        tabIndex={-1} 
+                        className="flex-1 overflow-y-auto p-4 lg:p-6 focus:outline-none"
+                        aria-label="Ana içerik"
+                    >
                         <Breadcrumbs />
                         <Suspense fallback={<DashboardLoading />}>
                             {children}

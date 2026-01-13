@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseClient } from "@/lib/supabase/client"
 import { loginSchema } from "@/lib/validations/auth"
+import {
+  withApiMiddleware,
+  createErrorResponse,
+  RateLimitPresets,
+} from "@/lib/api-helpers"
 
-export async function POST(req: NextRequest) {
+async function handleLogin(req: NextRequest) {
   try {
     const body = await req.json()
 
@@ -16,29 +21,31 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) {
-      return NextResponse.json(
-        { error: "Giriş başarısız", message: error.message },
-        { status: 401 }
+      return createErrorResponse(
+        error,
+        "Giriş başarısız",
+        401
       )
     }
 
     if (!data.session) {
-      return NextResponse.json(
-        { error: "Oturum oluşturulamadı" },
-        { status: 500 }
+      return createErrorResponse(
+        new Error("Session not created"),
+        "Oturum oluşturulamadı",
+        500
       )
     }
 
+    // SECURITY FIX: Token'ları response body'den kaldırdık
+    // Token'lar sadece httpOnly cookie'lerde saklanıyor
     const response = NextResponse.json({
       user: {
         id: data.user.id,
         email: data.user.email,
       },
-      session: {
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-        expires_at: data.session.expires_at,
-      },
+      // Token'lar artık response body'de değil, sadece httpOnly cookie'lerde
+      // expires_at bilgisi client tarafında token expiry kontrolü için gerekli
+      expires_at: data.session.expires_at,
     })
 
     // Access token: 24 hours expiry (JWT with 24h expiry)
@@ -62,15 +69,24 @@ export async function POST(req: NextRequest) {
     return response
   } catch (error) {
     if (error instanceof Error) {
-      return NextResponse.json(
-        { error: "Geçersiz istek", message: error.message },
-        { status: 400 }
+      return createErrorResponse(
+        error,
+        "Geçersiz istek",
+        400
       )
     }
 
-    return NextResponse.json(
-      { error: "Beklenmeyen bir hata oluştu" },
-      { status: 500 }
+    return createErrorResponse(
+      new Error("Unknown error"),
+      "Beklenmeyen bir hata oluştu",
+      500
     )
   }
 }
+
+// SECURITY FIX: Rate limiting eklendi (strict: 5 req/min)
+// Bu brute-force saldırılarını önler
+export const POST = withApiMiddleware(handleLogin, {
+  defaultErrorMessage: "Giriş başarısız",
+  rateLimit: RateLimitPresets.strict, // 5 requests per minute
+})

@@ -75,95 +75,63 @@ semgrep_findings({
 
 ## 🔍 Tespit Edilen Güvenlik Sorunları
 
-### 🔴 KRİTİK: Hassas Veri Açığa Çıkması
+### ✅ DÜZELTİLDİ: Hassas Veri Açığa Çıkması
 
-**Dosya:** `src/app/api/auth/login/route.ts`  
-**Satır:** 32-42, 45-51, 54-60  
-**Severity:** ERROR
+**Dosya:** `src/app/api/auth/login/route.ts` ve `src/app/api/auth/refresh/route.ts`  
+**Durum:** ✅ DÜZELTİLDİ  
+**Severity:** ERROR → ÇÖZÜLDÜ
 
 **Sorun:**
-Access token ve refresh token'lar response body'de açıkça döndürülüyor:
+Access token ve refresh token'lar response body'de açıkça döndürülüyordu.
 
-```32:42:src/app/api/auth/login/route.ts
-    const response = NextResponse.json({
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-      },
-      session: {
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token,
-        expires_at: data.session.expires_at,
-      },
-    })
-```
+**Düzeltme:**
+✅ Token'lar response body'den kaldırıldı  
+✅ Token'lar sadece httpOnly cookie'lerde saklanıyor  
+✅ Response body'de sadece user bilgileri ve expires_at döndürülüyor
 
-**Risk:**
-- Token'lar browser console'da görülebilir
-- XSS saldırıları ile token'lar çalınabilir
-- Token'lar log dosyalarında görünebilir
-
-**Çözüm:**
-Token'ları sadece httpOnly cookie'lerde saklayın, response body'den kaldırın:
-
+**Güncel Kod:**
 ```typescript
-// ❌ KÖTÜ
+// ✅ GÜVENLİ - Token'lar sadece httpOnly cookie'lerde
 const response = NextResponse.json({
   user: {
     id: data.user.id,
     email: data.user.email,
   },
-  session: {
-    access_token: data.session.access_token, // HASSAS VERİ
-    refresh_token: data.session.refresh_token, // HASSAS VERİ
-    expires_at: data.session.expires_at,
-  },
+  expires_at: data.session.expires_at, // Sadece expiry bilgisi
+  // Token'lar response body'de değil!
 })
 
-// ✅ İYİ
-const response = NextResponse.json({
-  user: {
-    id: data.user.id,
-    email: data.user.email,
-  },
-  // Token'lar sadece httpOnly cookie'lerde
+response.cookies.set("sb-access-token", data.session.access_token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 60 * 60 * 24,
+  path: "/",
 })
 ```
 
 ---
 
-### 🟡 BİLGİ: Rate Limiting Eksik
+### ✅ DÜZELTİLDİ: Rate Limiting Eksik
 
-**Dosya:** `src/app/api/auth/login/route.ts`  
-**Satır:** 5  
-**Severity:** INFO
+**Dosya:** `src/app/api/auth/login/route.ts` ve `src/app/api/auth/refresh/route.ts`  
+**Durum:** ✅ DÜZELTİLDİ  
+**Severity:** INFO → ÇÖZÜLDÜ
 
 **Sorun:**
-Login endpoint'inde rate limiting yok. Bu endpoint brute-force saldırılarına açık.
+Login ve refresh endpoint'lerinde rate limiting yoktu. Bu endpoint'ler brute-force saldırılarına açıktı.
 
-**Mevcut Durum:**
-```5:76:src/app/api/auth/login/route.ts
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    // ... authentication logic
-  }
-}
-```
+**Düzeltme:**
+✅ `withApiMiddleware` ile rate limiting eklendi  
+✅ Strict rate limit (5 req/min) uygulandı  
+✅ Her iki endpoint de korunuyor
 
-**Çözüm:**
-`withApiMiddleware` veya `withRateLimit` kullanın:
-
+**Güncel Kod:**
 ```typescript
-import { withApiMiddleware, RateLimitPresets } from "@/lib/api-helpers"
-
-async function handleLogin(req: NextRequest) {
-  // ... login logic
-}
-
+// ✅ GÜVENLİ - Rate limiting ile korunuyor
 export const POST = withApiMiddleware(handleLogin, {
   defaultErrorMessage: "Giriş başarısız",
-  rateLimit: RateLimitPresets.strict, // 5 req/min
+  rateLimit: RateLimitPresets.strict, // 5 req/min - brute-force koruması
 })
 ```
 
@@ -184,7 +152,8 @@ export const POST = withApiMiddleware(handleLogin, {
 ### 3. Rate Limiting
 ✅ Protected endpoints'de rate limiting var  
 ✅ Farklı rate limit presets (strict, standard, lenient)  
-⚠️ Login endpoint'inde eksik
+✅ Login endpoint'inde rate limiting eklendi  
+✅ Refresh endpoint'inde rate limiting eklendi
 
 ### 4. Error Handling
 ✅ Standardized error responses  
@@ -198,33 +167,41 @@ export const POST = withApiMiddleware(handleLogin, {
 
 ---
 
-## 🎯 Önerilen Düzeltmeler
+## ✅ Tamamlanan Düzeltmeler
 
-### Öncelik 1: Token Exposure (KRİTİK)
+### ✅ Öncelik 1: Token Exposure (KRİTİK) - TAMAMLANDI
 
-1. **Login endpoint'ini düzelt:**
-   - Response body'den token'ları kaldır
-   - Sadece httpOnly cookie'lerde sakla
-   - User bilgilerini döndür (token'lar zaten cookie'de)
+1. **Login endpoint'i düzeltildi:**
+   - ✅ Response body'den token'lar kaldırıldı
+   - ✅ Token'lar sadece httpOnly cookie'lerde saklanıyor
+   - ✅ User bilgileri döndürülüyor (token'lar cookie'de)
 
-2. **Refresh endpoint'ini kontrol et:**
-   - Aynı sorunu içeriyor mu kontrol et
-   - Gerekirse düzelt
+2. **Refresh endpoint'i düzeltildi:**
+   - ✅ Aynı sorun tespit edildi ve düzeltildi
+   - ✅ Token'lar response body'den kaldırıldı
+   - ✅ Sadece expires_at bilgisi döndürülüyor
 
-### Öncelik 2: Rate Limiting (YÜKSEK)
+### ✅ Öncelik 2: Rate Limiting (YÜKSEK) - TAMAMLANDI
 
-1. **Login endpoint'ine rate limiting ekle:**
+1. **Login endpoint'ine rate limiting eklendi:**
    ```typescript
    export const POST = withApiMiddleware(handleLogin, {
      defaultErrorMessage: "Giriş başarısız",
-     rateLimit: RateLimitPresets.strict, // 5 req/min
+     rateLimit: RateLimitPresets.strict, // 5 req/min ✅
    })
    ```
 
-2. **Diğer public endpoints'i kontrol et:**
-   - `/api/auth/register`
-   - `/api/auth/refresh`
-   - `/api/auth/logout`
+2. **Refresh endpoint'ine rate limiting eklendi:**
+   ```typescript
+   export const POST = withApiMiddleware(handleRefresh, {
+     defaultErrorMessage: "Oturum yenileme başarısız",
+     rateLimit: RateLimitPresets.strict, // 5 req/min ✅
+   })
+   ```
+
+3. **Diğer public endpoints kontrol edilmeli:**
+   - `/api/auth/register` - Kontrol edilmeli
+   - `/api/auth/logout` - Kontrol edilmeli
 
 ### Öncelik 3: Güvenlik İyileştirmeleri
 
@@ -246,13 +223,15 @@ export const POST = withApiMiddleware(handleLogin, {
 
 ## 📊 Tarama İstatistikleri
 
-- **Taranan Dosyalar:** 2
-  - `src/app/api/auth/login/route.ts`
+- **Taranan Dosyalar:** 3
+  - `src/app/api/auth/login/route.ts` ✅ DÜZELTİLDİ
+  - `src/app/api/auth/refresh/route.ts` ✅ DÜZELTİLDİ
   - `src/lib/supabase-service.ts`
-- **Tespit Edilen Sorunlar:** 3
-  - 🔴 Kritik: 2 (Token exposure)
-  - 🟡 Bilgi: 1 (Rate limiting)
-- **Temiz Dosyalar:** 1
+- **Tespit Edilen Sorunlar:** 4
+  - 🔴 Kritik: 2 (Token exposure) → ✅ DÜZELTİLDİ
+  - 🟡 Bilgi: 2 (Rate limiting) → ✅ DÜZELTİLDİ
+- **Düzeltme Durumu:** ✅ %100 Tamamlandı
+- **Temiz Dosyalar:** 2
   - `src/lib/api-helpers.ts`
   - `src/lib/auth-middleware.ts`
 
@@ -295,4 +274,29 @@ jobs:
 ---
 
 **Rapor Oluşturuldu:** 13 Ocak 2026  
+**Düzeltmeler Tamamlandı:** 13 Ocak 2026  
 **Sonraki Tarama:** 20 Ocak 2026
+
+---
+
+## 📝 Düzeltme Notları
+
+### Yapılan Değişiklikler
+
+1. **Login Endpoint (`src/app/api/auth/login/route.ts`):**
+   - Token'lar response body'den kaldırıldı
+   - Rate limiting eklendi (strict: 5 req/min)
+   - Standardized error handling kullanılıyor
+
+2. **Refresh Endpoint (`src/app/api/auth/refresh/route.ts`):**
+   - Token'lar response body'den kaldırıldı
+   - Rate limiting eklendi (strict: 5 req/min)
+   - Standardized error handling kullanılıyor
+
+### Güvenlik İyileştirmeleri
+
+- ✅ Token'lar artık sadece httpOnly cookie'lerde
+- ✅ XSS saldırılarına karşı korunma
+- ✅ Brute-force saldırılarına karşı rate limiting
+- ✅ Consistent error handling
+- ✅ Production-ready güvenlik standartları

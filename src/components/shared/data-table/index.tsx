@@ -132,12 +132,15 @@ export function DataTable<TData, TValue>({
   );
   const debouncedWindowWidth = useDebouncedValue(windowWidth, 150);
 
-  // Handle window resize
+  // Handle window resize - memoized callback
+  const handleResize = useCallback(() => {
+    setWindowWidth(window.innerWidth);
+  }, []);
+
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize, { passive: true });
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [handleResize]);
 
   // Handle responsive column visibility (debounced)
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { AuthInitializer } from "@/components/layout/auth-initializer";
 import { GlobalErrorBoundary } from "@/components/layout/global-error-boundary";
 import { ProgressBar } from "@/components/layout/progress-bar";
+import { ServiceWorkerRegister } from "@/components/layout/service-worker-register";
 import { Toaster } from "@/components/ui/sonner";
 import { VibeKanbanWrapper } from "@/components/layout/vibe-kanban-wrapper";
 import { QueryProvider } from "@/providers/query-provider";
@@ -44,6 +45,21 @@ export const metadata: Metadata = {
     index: false, // Dashboard sayfaları indexlenmemeli
     follow: false,
   },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Kafkasder Panel",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
+    ],
+  },
 };
 
 export const viewport = {
@@ -60,13 +76,16 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <body className="antialiased">
+        {/* Skip to main content link - Accessibility */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:rounded-md focus:shadow-lg"
+          className="skip-link"
+          aria-label="Ana içeriğe atla"
         >
           Ana içeriğe atla
         </a>
         <WebVitals />
+        <ServiceWorkerRegister />
         <QueryProvider>
           <GlobalErrorBoundary>
             <ProgressBar />
