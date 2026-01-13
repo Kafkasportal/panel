@@ -139,22 +139,14 @@ export const socialAidApplicationSchema = z.object({
 
 export type SocialAidApplicationFormData = z.infer<typeof socialAidApplicationSchema>
 
-// Login form schema - very flexible for demo purposes
+// Login form schema
 export const loginSchema = z.object({
     email: z.string()
         .min(1, 'E-posta adresi gereklidir')
-        .refine((val) => {
-            // For demo: accept any non-empty string (even without @)
-            const trimmed = (val || '').trim()
-            return trimmed.length >= 1
-        }, 'E-posta adresi gereklidir'),
+        .email('Geçerli bir e-posta adresi giriniz'),
     password: z.string()
         .min(1, 'Şifre gereklidir')
-        .refine((val) => {
-            // For demo: accept any string with at least 6 characters
-            const trimmed = (val || '').trim()
-            return trimmed.length >= 6
-        }, 'Şifre en az 6 karakter olmalıdır'),
+        .min(6, 'Şifre en az 6 karakter olmalıdır'),
     rememberMe: z.boolean().optional()
 })
 

@@ -19,14 +19,16 @@ import { useEffect, useState } from "react";
 const AidDistributionChart = dynamic(
   () =>
     import("@/components/features/charts/aid-distribution-chart").then(
-      (mod) => ({ default: mod.AidDistributionChart }),
+      (mod) => {
+        return { default: mod.AidDistributionChart };
+      }
     ),
   {
     ssr: false,
     loading: () => (
       <div className="h-[200px] w-full animate-pulse bg-muted rounded-lg" />
     ),
-  },
+  }
 );
 
 import { PageHeader } from "@/components/shared/page-header";
@@ -41,11 +43,7 @@ import {
   ListLoadingSkeleton,
   StatCardSkeleton,
 } from "@/components/shared/loading-state";
-import {
-  useApplications,
-  useMembers,
-  useDashboardStats,
-} from "@/hooks/use-api";
+import { useApplications, useMembers, useDashboardStats } from "@/hooks/use-api";
 import { BASVURU_DURUMU_LABELS, STATUS_VARIANTS } from "@/lib/constants";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
 
@@ -151,7 +149,11 @@ export default function DashboardPage() {
                 Yardım türlerine göre dağılım grafiği
               </p>
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
               <Link href="/sosyal-yardim/istatistikler">
                 Detaylar <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
@@ -173,7 +175,7 @@ export default function DashboardPage() {
             </div>
             {/* Enhanced Legend */}
             <div className="mt-6 flex flex-wrap justify-center gap-6">
-              {stats.aidDistribution.map((item, index) => (
+              {stats.aidDistribution?.map((item, index) => (
                 <div key={index} className="flex items-center gap-2 group">
                   <div
                     className="h-3 w-3 rounded-full shadow-sm ring-2 ring-offset-2 ring-transparent group-hover:ring-primary/50 transition-all"
@@ -208,7 +210,11 @@ export default function DashboardPage() {
                 İşleme alınmayı bekleyen başvurular
               </p>
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
               <Link href="/sosyal-yardim/basvurular">
                 Tümünü Gör <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
@@ -241,7 +247,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-
+                    
                     <div className="flex items-center gap-2">
                       <Badge
                         variant={
@@ -290,7 +296,11 @@ export default function DashboardPage() {
                 Derneğe yeni katılan üyeler
               </p>
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
               <Link href="/uyeler/liste">
                 Tümünü Gör <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
@@ -319,12 +329,10 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-
+                    
                     <div className="flex items-center gap-2">
-                      <Badge
-                        variant={
-                          member.uyeTuru === "aktif" ? "success" : "outline"
-                        }
+                      <Badge 
+                        variant={member.uyeTuru === "aktif" ? "success" : "outline"}
                         className="text-xs"
                       >
                         {member.uyeTuru === "aktif"

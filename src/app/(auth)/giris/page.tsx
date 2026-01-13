@@ -183,18 +183,6 @@ export default function LoginPage() {
             </form>
           </Form>
         </div>
-
-        {/* Demo Info */}
-        <div className="bg-muted/50 px-6 py-4 border-t">
-          <div className="text-center">
-            <p className="text-xs font-semibold mb-1">
-              Demo Hesap
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Herhangi bir e-posta ve 6+ karakter şifre ile giriş yapabilirsiniz
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Footer */}

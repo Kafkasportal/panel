@@ -1,6 +1,6 @@
 /**
  * Email Service Wrapper
- *
+ * 
  * Optional wrapper for custom email functionality.
  * Currently, Supabase Auth handles most email operations.
  * This service can be extended for custom email templates or notifications.
@@ -76,10 +76,10 @@ export async function sendMagicLinkEmail(email: string, redirectTo?: string) {
       throw error;
     }
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    console.error("Failed to send magic link email:", error);
-    throw error;
+    console.error("Failed to send magic link email:", error)
+    throw error
   }
 }
 
@@ -96,17 +96,17 @@ export async function sendEmailChangeConfirmation(
       {
         emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
       },
-    );
+    )
 
     if (error) {
-      console.error("Email change confirmation error:", error);
-      throw error;
+      console.error("Email change confirmation error:", error)
+      throw error
     }
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    console.error("Failed to send email change confirmation:", error);
-    throw error;
+    console.error("Failed to send email change confirmation:", error)
+    throw error
   }
 }
 
@@ -114,27 +114,27 @@ export async function sendEmailChangeConfirmation(
  * Check if email service is configured
  */
 export async function checkEmailServiceStatus(): Promise<{
-  configured: boolean;
-  error?: string;
+  configured: boolean
+  error?: string
 }> {
   try {
     // Try to get auth settings to check if email is configured
-    const { error } = await supabase.auth.getSession();
+    const { error } = await supabase.auth.getSession()
 
     if (error) {
       return {
         configured: false,
         error: error.message,
-      };
+      }
     }
 
     return {
       configured: true,
-    };
+    }
   } catch (error) {
     return {
       configured: false,
       error: error instanceof Error ? error.message : "Unknown error",
-    };
+    }
   }
 }

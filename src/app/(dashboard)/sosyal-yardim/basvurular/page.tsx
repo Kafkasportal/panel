@@ -233,7 +233,31 @@ export default function ApplicationsPage() {
             >
               <Settings className="h-4 w-4" />
             </Button>
+            <span className="min-w-24 px-3 text-center text-sm font-medium">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 hover:bg-background"
+              aria-label="Sonraki sayfa"
+              onClick={() => {
+                setPage((p) => Math.min(totalPages, p + 1));
+              }}
+              disabled={page === totalPages}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            aria-label="Ayarlar"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -257,9 +281,7 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Beklemede</p>
-                <p className="text-2xl font-bold text-amber-600">
-                  {stats.beklemede}
-                </p>
+                <p className="text-2xl font-bold text-amber-600">{stats.beklemede}</p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-amber-500/10 flex items-center justify-center">
                 <Clock className="h-5 w-5 text-amber-600" />
@@ -272,9 +294,7 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">İnceleniyor</p>
-                <p className="text-2xl font-bold text-sky-600">
-                  {stats.inceleniyor}
-                </p>
+                <p className="text-2xl font-bold text-sky-600">{stats.inceleniyor}</p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-sky-500/10 flex items-center justify-center">
                 <AlertCircle className="h-5 w-5 text-sky-600" />
@@ -287,9 +307,7 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Onaylandı</p>
-                <p className="text-2xl font-bold text-emerald-600">
-                  {stats.onaylandi}
-                </p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.onaylandi}</p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                 <CheckCircle className="h-5 w-5 text-emerald-600" />
@@ -302,9 +320,7 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Reddedildi</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {stats.reddedildi}
-                </p>
+                <p className="text-2xl font-bold text-red-600">{stats.reddedildi}</p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-red-500/10 flex items-center justify-center">
                 <XCircle className="h-5 w-5 text-red-600" />
@@ -316,10 +332,7 @@ export default function ApplicationsPage() {
 
       {/* Filtreleme Alanı */}
       <Accordion type="single" collapsible defaultValue="">
-        <AccordionItem
-          value="filters"
-          className="border border-border/50 rounded-xl"
-        >
+        <AccordionItem value="filters" className="border border-border/50 rounded-xl">
           <AccordionTrigger className="px-6">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
@@ -625,13 +638,37 @@ export default function ApplicationsPage() {
                             onClick={async (e) => {
                               e.stopPropagation();
                               setApprovingId(application.id);
+                              // Simüle edilmiş async işlem
                               await new Promise((resolve) =>
                                 setTimeout(resolve, 1000),
                               );
                               setApprovingId(null);
+                              // Onayla işlemi
                             }}
                           >
-                            {approvingId !== application.id && (
+                            {!approvingId && (
+                              <CheckCircle className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="min-h-[44px] min-w-[44px] h-8 w-8 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
+                            aria-label="Başvuruyu onayla"
+                            loading={approvingId === String(application.id)}
+                            disabled={rejectingId === String(application.id)}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              setApprovingId(String(application.id));
+                              // Simüle edilmiş async işlem
+                              await new Promise((resolve) =>
+                                setTimeout(resolve, 1000),
+                              );
+                              setApprovingId(null);
+                              // Onayla işlemi
+                            }}
+                          >
+                            {approvingId !== String(application.id) && (
                               <CheckCircle className="h-4 w-4" />
                             )}
                           </Button>
@@ -640,20 +677,33 @@ export default function ApplicationsPage() {
                             size="icon"
                             className="min-h-[44px] min-w-[44px] h-8 w-8 text-red-600 hover:bg-red-500/10 hover:text-red-700"
                             aria-label="Başvuruyu reddet"
-                            loading={rejectingId === application.id}
-                            disabled={approvingId === application.id}
+                            loading={rejectingId === String(application.id)}
+                            disabled={approvingId === String(application.id)}
                             onClick={async (e) => {
                               e.stopPropagation();
-                              setRejectingId(application.id);
+                              setRejectingId(String(application.id));
+                              // Simüle edilmiş async işlem
                               await new Promise((resolve) =>
                                 setTimeout(resolve, 1000),
                               );
                               setRejectingId(null);
+                              // Reddet işlemi
                             }}
                           >
-                            {rejectingId !== application.id && (
+                            {rejectingId !== String(application.id) && (
                               <XCircle className="h-4 w-4" />
                             )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="min-h-[44px] min-w-[44px] h-8 w-8 text-red-600 hover:bg-red-500/10 hover:text-red-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Reddet işlemi
+                            }}
+                          >
+                            <XCircle className="h-4 w-4" />
                           </Button>
                         </div>
                       )}

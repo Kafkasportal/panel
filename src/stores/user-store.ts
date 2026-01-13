@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase/client";
-import type { User } from "@/types";
+import type { User, Permission, UserRole } from "@/types";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { create } from "zustand";
 
@@ -16,17 +16,9 @@ interface UserState {
   updateUser: (updates: Partial<User>) => void;
 }
 
-// Demo user for testing
-const DEMO_USER: User = {
-  id: "demo-user-id",
-  name: "Demo Kullanıcı",
-  email: "demo@kafkasder.org",
-  phone: "0532 123 45 67",
-  role: "admin",
-  avatar: undefined,
-  isActive: true,
-  lastLogin: new Date(),
-  permissions: [
+// Helper function to get permissions based on role
+function getPermissionsForRole(role: UserRole): Permission[] {
+  const allPermissions: Permission[] = [
     "donations.view",
     "donations.create",
     "donations.edit",
@@ -38,10 +30,69 @@ const DEMO_USER: User = {
     "social-aid.approve",
     "reports.export",
     "settings.manage",
-  ],
-  createdAt: new Date("2023-01-01"),
-  updatedAt: new Date(),
-};
+  ];
+
+  switch (role) {
+    case "admin":
+      return allPermissions; // Admin has all permissions
+    case "muhasebe":
+      return [
+        "donations.view",
+        "donations.create",
+        "donations.edit",
+        "members.view",
+        "reports.export",
+      ];
+    case "gorevli":
+      return [
+        "donations.view",
+        "donations.create",
+        "members.view",
+        "members.create",
+        "social-aid.view",
+      ];
+    case "uye":
+      return ["donations.view", "members.view"];
+    default:
+      return [];
+  }
+}
+
+// Helper function to fetch user data from public.users table
+async function fetchUserFromDatabase(userId: string): Promise<User | null> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error || !data) {
+    console.error("Error fetching user from database:", error);
+    return null;
+  }
+
+  const role = (data.role || "user") as UserRole;
+  const permissions = getPermissionsForRole(role);
+
+  return {
+    id: data.id,
+    name: data.name || data.email || "Kullanıcı",
+    email: data.email,
+    phone: undefined,
+    role: role,
+    avatar: data.avatar_url || undefined,
+    isActive: true,
+    lastLogin: new Date(),
+    permissions: permissions,
+    createdAt: new Date(data.created_at),
+    updatedAt: new Date(data.updated_at),
+  };
+}
 
 export const useUserStore = create<UserState>()((set) => ({
   user: null,
@@ -69,35 +120,61 @@ export const useUserStore = create<UserState>()((set) => ({
     // Initial session check - only run once
     supabase.auth
       .getSession()
-      .then(({ data: { session } }: { data: { session: Session | null } }) => {
+      .then(async ({ data: { session } }: { data: { session: Session | null } }) => {
         if (session?.user) {
-          set({
-            user: {
-              id: session.user.id,
-              email: session.user.email || "",
-              ad: session.user.user_metadata?.ad || "",
-              soyad: session.user.user_metadata?.soyad || "",
-              role: session.user.user_metadata?.role || "user",
-            } as unknown as User,
-            isAuthenticated: true,
-          });
+          // Fetch user data from public.users table
+          const userData = await fetchUserFromDatabase(session.user.id);
+          if (userData) {
+            set({
+              user: userData,
+              isAuthenticated: true,
+            });
+          } else {
+            // Fallback to basic user data if database fetch fails
+            set({
+              user: {
+                id: session.user.id,
+                name: session.user.email || "Kullanıcı",
+                email: session.user.email || "",
+                role: "user",
+                isActive: true,
+                permissions: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+              isAuthenticated: true,
+            });
+          }
         }
       });
 
     // Listen for auth changes - only attach once
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event: AuthChangeEvent, session: Session | null) => {
+      async (_event: AuthChangeEvent, session: Session | null) => {
         if (session?.user) {
-          set({
-            user: {
-              id: session.user.id,
-              email: session.user.email || "",
-              ad: session.user.user_metadata?.ad || "",
-              soyad: session.user.user_metadata?.soyad || "",
-              role: session.user.user_metadata?.role || "user",
-            } as unknown as User,
-            isAuthenticated: true,
-          });
+          // Fetch user data from public.users table
+          const userData = await fetchUserFromDatabase(session.user.id);
+          if (userData) {
+            set({
+              user: userData,
+              isAuthenticated: true,
+            });
+          } else {
+            // Fallback to basic user data if database fetch fails
+            set({
+              user: {
+                id: session.user.id,
+                name: session.user.email || "Kullanıcı",
+                email: session.user.email || "",
+                role: "user",
+                isActive: true,
+                permissions: [],
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              },
+              isAuthenticated: true,
+            });
+          }
         } else {
           set({ user: null, isAuthenticated: false });
         }
@@ -122,24 +199,81 @@ export const useUserStore = create<UserState>()((set) => ({
     });
     set({ isLoading: true, error: null });
 
-    // Demo mode: always allow login
-    console.log("✅ Demo mode activated");
-    const demoUser = { ...DEMO_USER, email: email || "demo@kafkasder.org" };
-    console.log("👤 Demo user:", demoUser);
+    const supabase = getSupabaseClient();
 
-    // Set demo session cookie for middleware
-    document.cookie = "demo-session=true; path=/; max-age=86400";
+    if (!supabase) {
+      set({
+        error: "Supabase client is not available",
+        isLoading: false,
+      });
+      return false;
+    }
 
-    // Simulate network delay for realistic feel and to prevent double submission
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      // Authenticate with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    set({
-      user: demoUser,
-      isAuthenticated: true,
-      isLoading: false,
-    });
-    console.log("🎉 Demo login successful");
-    return true;
+      if (authError) {
+        console.error("❌ Login error:", authError);
+        set({
+          error: authError.message || "Giriş yapılamadı",
+          isLoading: false,
+        });
+        return false;
+      }
+
+      if (!authData.user) {
+        set({
+          error: "Kullanıcı bilgisi alınamadı",
+          isLoading: false,
+        });
+        return false;
+      }
+
+      // Fetch user data from public.users table
+      const userData = await fetchUserFromDatabase(authData.user.id);
+
+      if (!userData) {
+        console.warn("⚠️ User data not found in database, using basic user info");
+        // Fallback to basic user data
+        const role = (authData.user.user_metadata?.role || "user") as UserRole;
+        set({
+          user: {
+            id: authData.user.id,
+            name: authData.user.email || "Kullanıcı",
+            email: authData.user.email || "",
+            role: role,
+            isActive: true,
+            permissions: getPermissionsForRole(role),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        console.log("🎉 Login successful (fallback)");
+        return true;
+      }
+
+      set({
+        user: userData,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+      console.log("🎉 Login successful", { user: userData });
+      return true;
+    } catch (error) {
+      console.error("❌ Login exception:", error);
+      set({
+        error: error instanceof Error ? error.message : "Beklenmeyen bir hata oluştu",
+        isLoading: false,
+      });
+      return false;
+    }
   },
 
   logout: async () => {
@@ -147,8 +281,6 @@ export const useUserStore = create<UserState>()((set) => ({
     if (supabase) {
       await supabase.auth.signOut();
     }
-    // Clear demo session cookie
-    document.cookie = "demo-session=; path=/; max-age=0";
     set({ user: null, isAuthenticated: false, error: null });
 
     // Cleanup auth listener

@@ -19,9 +19,6 @@ export default function AuthLoading() {
                 <div className="rounded-lg border bg-card p-6">
                     <FormLoadingSkeleton fields={2} hasSubmitButton={true} />
                 </div>
-
-                {/* Demo Info Skeleton */}
-                <div className="h-16 w-full bg-accent rounded-lg" />
             </div>
         </div>
     )

@@ -72,10 +72,6 @@ export default async function proxy(req: NextRequest) {
     session = supabaseSession
   }
 
-  
-  // Check for demo session cookie
-  const demoSession = req.cookies.get('demo-session')?.value === 'true'
-
   const pathname = req.nextUrl.pathname
 
   // Public routes - no auth required (route groups don't affect URL path)
@@ -87,14 +83,14 @@ export default async function proxy(req: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
 
   // Redirect to login if trying to access protected route without session
-  if (isProtectedRoute && !session && !demoSession) {
+  if (isProtectedRoute && !session) {
     const redirectUrl = new URL('/giris', req.url)
     redirectUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
   // Redirect to dashboard if trying to access auth routes with active session
-  if (isPublicRoute && (session || demoSession)) {
+  if (isPublicRoute && session) {
     return NextResponse.redirect(new URL('/genel', req.url))
   }
 
