@@ -224,27 +224,144 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 ### GitHub İşlemleri (newradar)
 
-```typescript
-// Pull request oluşturma
-await mcp_newradar_create_pull_request({
-  owner: "Kafkasportal",
-  repo: "panel",
-  title: "New feature",
-  body: "Description",
-  head: "feature-branch",
-  base: "main",
-});
+GitHub işlemleri için `newradar` MCP server'ı kullanılır. Tool'lar `radar_search` ile keşfedilir ve `radar_execute_tool` ile çalıştırılır.
 
-// Dosya oluşturma
-await mcp_newradar_create_or_update_file({
-  owner: "Kafkasportal",
-  repo: "panel",
-  path: "src/components/new-component.tsx",
-  content: "// Component code",
-  message: "Add new component",
-  branch: "main",
+#### 1. Repository İşlemleri
+
+```typescript
+// Yeni repository oluşturma
+await mcp_newradar_radar_execute_tool({
+  tool_name: "create_repository",
+  arguments: {
+    name: "my-new-repo",
+    description: "Repository açıklaması",
+    private: false,
+    autoInit: true, // README ile başlat
+  },
 });
 ```
+
+#### 2. Dosya İşlemleri
+
+```typescript
+// Dosya oluşturma veya güncelleme
+await mcp_newradar_radar_execute_tool({
+  tool_name: "create_or_update_file",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    path: "src/components/new-component.tsx",
+    content: Buffer.from("// Component code").toString("base64"), // Base64 encoded
+    message: "Add new component",
+    branch: "main",
+    // sha: "file-sha-for-updates" // Güncelleme için gerekli
+  },
+});
+
+// Dosya silme
+await mcp_newradar_radar_execute_tool({
+  tool_name: "delete_file",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    path: "src/components/old-component.tsx",
+    message: "Remove old component",
+    branch: "main",
+  },
+});
+```
+
+#### 3. Pull Request İşlemleri
+
+```typescript
+// Pull request listeleme
+await mcp_newradar_radar_execute_tool({
+  tool_name: "list_pull_requests",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    state: "open", // "open" | "closed" | "all"
+    sort: "created", // "created" | "updated" | "popularity" | "long-running"
+    direction: "desc",
+    base: "main",
+    head: "feature-branch",
+    page: 1,
+    perPage: 10,
+  },
+});
+
+// Pull request detayları
+await mcp_newradar_radar_execute_tool({
+  tool_name: "get_pull_request",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    pullNumber: 123,
+  },
+});
+
+// Pull request güncelleme
+await mcp_newradar_radar_execute_tool({
+  tool_name: "update_pull_request",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    pullNumber: 123,
+    title: "Updated PR title",
+    body: "Updated description",
+    state: "open", // "open" | "closed"
+    base: "main",
+    maintainer_can_modify: true,
+  },
+});
+
+// Pull request branch güncelleme (base branch ile sync)
+await mcp_newradar_radar_execute_tool({
+  tool_name: "update_pull_request_branch",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    pullNumber: 123,
+    expectedHeadSha: "commit-sha",
+  },
+});
+
+// Pull request'teki değişen dosyalar
+await mcp_newradar_radar_execute_tool({
+  tool_name: "get_pull_request_files",
+  arguments: {
+    owner: "Kafkasportal",
+    repo: "panel",
+    pullNumber: 123,
+  },
+});
+```
+
+#### 4. Tool Keşfetme
+
+```typescript
+// Yeni GitHub tool'ları keşfetme
+await mcp_newradar_radar_search({
+  query: "GitHub create issue comment review",
+  max_results: 10,
+  min_relevance: 0.5,
+});
+
+// Keşfedilen tool'u çalıştırma
+await mcp_newradar_radar_execute_tool({
+  tool_name: "discovered_tool_name",
+  arguments: {
+    // Tool'a özel parametreler
+  },
+});
+```
+
+#### Önemli Notlar
+
+1. **Base64 Encoding**: Dosya içeriği Base64 formatında gönderilmelidir
+2. **SHA Gereksinimi**: Dosya güncellemeleri için mevcut dosyanın SHA'sı gerekir
+3. **Authentication**: GitHub token'ı MCP server yapılandırmasında olmalıdır
+4. **Rate Limiting**: GitHub API rate limit'lerine dikkat edin
 
 ### Vercel Deployment (vercel)
 
