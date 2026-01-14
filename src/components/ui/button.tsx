@@ -89,12 +89,8 @@ function Button({
         children
       ) : (
         <>
-          {loading && (
-            <Spinner className="size-5" />
-          )}
-          <span className={loading ? "opacity-70" : ""}>
-            {loading && loadingText ? loadingText : children}
-          </span>
+          {loading && <Spinner className="size-4" />}
+          {loading && loadingText ? loadingText : children}
         </>
       )}
     </Comp>

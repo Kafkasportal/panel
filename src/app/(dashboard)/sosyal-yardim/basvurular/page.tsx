@@ -201,58 +201,30 @@ export default function ApplicationsPage() {
           <div className="bg-muted flex items-center gap-1 rounded-lg p-1">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               aria-label="Önceki sayfa"
               onClick={() => {
                 setPage((p) => Math.max(1, p - 1));
               }}
               disabled={page === 1}
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="min-w-24 px-3 text-center text-sm font-medium">
+            <span className="min-w-20 px-3 text-center text-sm font-medium">
               {page} / {totalPages}
             </span>
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               aria-label="Sonraki sayfa"
               onClick={() => {
                 setPage((p) => Math.min(totalPages, p + 1));
               }}
               disabled={page === totalPages}
             >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="min-h-[44px] min-w-[44px]"
-              aria-label="Ayarlar"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-            <span className="min-w-24 px-3 text-center text-sm font-medium">
-              {page} / {totalPages}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 hover:bg-background"
-              aria-label="Sonraki sayfa"
-              onClick={() => {
-                setPage((p) => Math.min(totalPages, p + 1));
-              }}
-              disabled={page === totalPages}
-            >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
-
-          <Button variant="ghost" size="icon" aria-label="Ayarlar">
-            <Settings className="h-4 w-4" />
-          </Button>
         </div>
       </div>
 
@@ -640,39 +612,15 @@ export default function ApplicationsPage() {
                             size="icon-sm"
                             className="text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
                             aria-label="Başvuruyu onayla"
-                            loading={approvingId === application.id}
-                            disabled={rejectingId === application.id}
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              setApprovingId(application.id);
-                              // Simüle edilmiş async işlem
-                              await new Promise((resolve) =>
-                                setTimeout(resolve, 1000),
-                              );
-                              setApprovingId(null);
-                              // Onayla işlemi
-                            }}
-                          >
-                            {!approvingId && (
-                              <CheckCircle className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
-                            aria-label="Başvuruyu onayla"
                             loading={approvingId === String(application.id)}
                             disabled={rejectingId === String(application.id)}
                             onClick={async (e) => {
                               e.stopPropagation();
                               setApprovingId(String(application.id));
-                              // Simüle edilmiş async işlem
                               await new Promise((resolve) =>
                                 setTimeout(resolve, 1000),
                               );
                               setApprovingId(null);
-                              // Onayla işlemi
                             }}
                           >
                             {approvingId !== String(application.id) && (
@@ -689,12 +637,10 @@ export default function ApplicationsPage() {
                             onClick={async (e) => {
                               e.stopPropagation();
                               setRejectingId(String(application.id));
-                              // Simüle edilmiş async işlem
                               await new Promise((resolve) =>
                                 setTimeout(resolve, 1000),
                               );
                               setRejectingId(null);
-                              // Reddet işlemi
                             }}
                           >
                             {rejectingId !== String(application.id) && (

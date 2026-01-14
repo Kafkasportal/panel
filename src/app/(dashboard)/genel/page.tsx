@@ -63,15 +63,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Genel Bakış</h1>
 
       {/* Compact Stats */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-0">
             <CardDescription className="text-xs">Aktif Üye</CardDescription>
-            <CardTitle className="text-xl">
+            <CardTitle className="text-2xl font-bold">
               {stats.activeMembers?.toLocaleString("tr-TR") || "0"}
             </CardTitle>
             <CardAction>
@@ -84,11 +84,11 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-0">
             <CardDescription className="text-xs">
               Bekleyen Başvuru
             </CardDescription>
-            <CardTitle className="text-xl">
+            <CardTitle className="text-2xl font-bold">
               {stats.pendingApplications || "0"}
             </CardTitle>
             <CardAction>
@@ -101,9 +101,9 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-0">
             <CardDescription className="text-xs">Bu Ay Ödenen</CardDescription>
-            <CardTitle className="text-xl">
+            <CardTitle className="text-2xl font-bold">
               {formatCurrency(stats.monthlyAid || 0)}
             </CardTitle>
             <CardAction>
@@ -116,9 +116,9 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-0">
             <CardDescription className="text-xs">Toplam Bağış</CardDescription>
-            <CardTitle className="text-xl">
+            <CardTitle className="text-2xl font-bold">
               {formatCurrency(stats.totalDonations || 0)}
             </CardTitle>
             <CardAction>
@@ -135,26 +135,26 @@ export default function DashboardPage() {
       <ChartAreaInteractive />
 
       {/* Compact Lists */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Bekleyen Başvurular</CardTitle>
+              <CardTitle className="text-lg font-semibold">Bekleyen Başvurular</CardTitle>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/sosyal-yardim/basvurular">
-                  Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                  Tümü <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {applicationsData?.data && applicationsData.data.length > 0 ? (
                 applicationsData.data.slice(0, 3).map((app) => (
                   <Link
                     key={app.id}
                     href={`/sosyal-yardim/basvurular/${app.id}`}
-                    className="flex items-center justify-between rounded-lg border p-2 hover:bg-muted/50"
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
@@ -199,23 +199,23 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Son Üyeler</CardTitle>
+              <CardTitle className="text-lg font-semibold">Son Üyeler</CardTitle>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/uyeler/liste">
-                  Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                  Tümü <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {recentMembers.length > 0 ? (
                 recentMembers.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between rounded-lg border p-2"
+                    className="flex items-center justify-between rounded-lg border p-3"
                   >
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
@@ -260,9 +260,9 @@ export default function DashboardPage() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i}>
             <CardHeader>
@@ -276,7 +276,7 @@ function DashboardSkeleton() {
           <div className="h-[300px] bg-muted rounded animate-pulse" />
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {Array.from({ length: 2 }).map((_, i) => (
           <Card key={i}>
             <CardContent className="p-6">
