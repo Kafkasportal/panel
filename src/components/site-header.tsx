@@ -8,10 +8,9 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 const routeTitles: Record<string, string> = {
   genel: "Genel Bakış",
   bagis: "Bağışlar",
-  liste: "Bağış Listesi",
   kumbara: "Kumbara Yönetimi",
   "gelir-gider": "Gelir-Gider",
-  raporlar: "Bağış Raporları",
+  raporlar: "Raporlar",
   uyeler: "Üyeler",
   yeni: "Yeni Ekle",
   "sosyal-yardim": "Sosyal Yardım",
@@ -23,6 +22,16 @@ const routeTitles: Record<string, string> = {
   kullanicilar: "Kullanıcılar",
   ayarlar: "Ayarlar",
   yedekleme: "Yedekleme",
+  "ihtiyac-sahipleri": "İhtiyaç Sahipleri",
+  vezne: "Nakdi Yardım Veznesi",
+  "audit-logs": "Audit Logs",
+}
+
+// Context-aware list titles based on parent segment
+const contextualListTitles: Record<string, string> = {
+  uyeler: "Üye Listesi",
+  bagis: "Bağış Listesi",
+  "sosyal-yardim": "Yardım Listesi",
 }
 
 export function SiteHeader() {
@@ -46,6 +55,12 @@ export function SiteHeader() {
       // If last segment is an ID, use the previous segment
       const parentSegment = segments[segments.length - 2]
       return routeTitles[parentSegment] || "Detay"
+    }
+    
+    // Handle "liste" segment based on parent context
+    if (lastSegment === "liste" && segments.length > 1) {
+      const parentSegment = segments[segments.length - 2]
+      return contextualListTitles[parentSegment] || "Liste"
     }
     
     return routeTitles[lastSegment] || "Panel"

@@ -7,6 +7,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import Image from "next/image";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -53,13 +55,27 @@ export default function LoginPage() {
     }
   }
 
+  const handleForgotPassword = () => {
+    toast.info("Şifre sıfırlama özelliği yakında eklenecektir.");
+  };
+
   return (
     <div className="w-full max-w-sm mx-auto animate-in fade-in-0 zoom-in-95 duration-500">
       {/* Login Card - Shadcn Style */}
       <div className="bg-card rounded-xl shadow-lg border overflow-hidden">
         <div className="px-6 py-8">
-          {/* Header */}
+          {/* Header with Logo */}
           <div className="text-center mb-6">
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/logo.png"
+                alt="Kafkas Derneği Logo"
+                width={64}
+                height={64}
+                className="rounded-lg"
+                priority
+              />
+            </div>
             <h1 className="text-2xl font-bold mb-1">Giriş Yap</h1>
             <p className="text-sm text-muted-foreground">Hesabınıza erişin</p>
           </div>
@@ -158,6 +174,7 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
+                  onClick={handleForgotPassword}
                   className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
                 >
                   Şifremi unuttum?

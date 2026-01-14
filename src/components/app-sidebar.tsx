@@ -64,20 +64,12 @@ const data = {
       icon: IconChartBar,
       items: [
         {
-          title: "Raporlar",
-          url: "/sosyal-yardim/raporlar",
-        },
-        {
-          title: "İhtiyaç Sahipleri",
-          url: "/sosyal-yardim/ihtiyac-sahipleri",
-        },
-        {
           title: "Yardım Başvuruları",
           url: "/sosyal-yardim/basvurular",
         },
         {
-          title: "Tüm Yardımlar",
-          url: "/sosyal-yardim/tum-yardimlar",
+          title: "İhtiyaç Sahipleri",
+          url: "/sosyal-yardim/ihtiyac-sahipleri",
         },
         {
           title: "Nakdi Yardım Veznesi",
@@ -86,34 +78,6 @@ const data = {
         {
           title: "Banka Ödeme Emirleri",
           url: "/sosyal-yardim/odemeler",
-        },
-        {
-          title: "Nakdi Yardım İşlemleri",
-          url: "/sosyal-yardim/nakdi-yardim",
-        },
-        {
-          title: "Ayni Yardım İşlemleri",
-          url: "/sosyal-yardim/ayni-yardim",
-        },
-        {
-          title: "Hizmet Takip İşlemleri",
-          url: "/sosyal-yardim/hizmet-takip",
-        },
-        {
-          title: "Hastane Sevk İşlemleri",
-          url: "/sosyal-yardim/hastane-sevk",
-        },
-        {
-          title: "Parametreler",
-          url: "/sosyal-yardim/parametreler",
-        },
-        {
-          title: "Veri Kontrolü",
-          url: "/sosyal-yardim/veri-kontrol",
-        },
-        {
-          title: "Modül Bilgilendirme",
-          url: "/sosyal-yardim/modul-bilgilendirme",
         },
         {
           title: "İstatistikler",
@@ -184,12 +148,12 @@ const data = {
   ],
   documents: [
     {
-      name: "Raporlar",
-      url: "/raporlar",
+      name: "Bağış Raporları",
+      url: "/bagis/raporlar",
       icon: IconFileDescription,
     },
     {
-      name: "Belgeler",
+      name: "Dokümanlar",
       url: "/dokumanlar",
       icon: IconFolder,
     },
@@ -204,10 +168,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              className="data-[slot=sidebar-menu-button]:p-1.5!"
             >
               <a href="/">
-                <IconInnerShadowTop className="!size-5" />
+                <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">Kafkasder Panel</span>
               </a>
             </SidebarMenuButton>

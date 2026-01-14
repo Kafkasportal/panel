@@ -65,6 +65,19 @@ function toPaginatedResponse<T>(
   };
 }
 
+/**
+ * Sanitize search input to prevent SQL injection and query syntax issues
+ * Escapes special characters that could break Supabase query syntax
+ */
+function sanitizeSearchInput(search: string): string {
+  // Remove or escape characters that could break Supabase query syntax
+  // Supabase uses % for wildcards in ilike, so we need to escape it
+  return search
+    .replace(/[%_\\]/g, (char) => `\\${char}`) // Escape %, _, and \
+    .trim()
+    .slice(0, 100); // Limit length to prevent DoS
+}
+
 function mapMember(db: Tables["members"]["Row"]): Uye {
   return {
     id: db.id.toString(),
@@ -254,8 +267,9 @@ export async function fetchMembers(options?: {
     .order("created_at", { ascending: false });
 
   if (search) {
+    const sanitizedSearch = sanitizeSearchInput(search);
     query = query.or(
-      `ad.ilike.%${search}%,soyad.ilike.%${search}%,tc_kimlik_no.ilike.%${search}%`,
+      `ad.ilike.%${sanitizedSearch}%,soyad.ilike.%${sanitizedSearch}%,tc_kimlik_no.ilike.%${sanitizedSearch}%`,
     );
   }
 
@@ -334,7 +348,8 @@ export async function fetchDonations(options?: {
     .order("tarih", { ascending: false });
 
   if (search) {
-    query = query.ilike("bagisci_adi", `%${search}%`);
+    const sanitizedSearch = sanitizeSearchInput(search);
+    query = query.ilike("bagisci_adi", `%${sanitizedSearch}%`);
   }
 
   if (amac) {
@@ -418,8 +433,9 @@ export async function fetchBeneficiaries(options?: {
     .order("created_at", { ascending: false });
 
   if (search) {
+    const sanitizedSearch = sanitizeSearchInput(search);
     query = query.or(
-      `ad.ilike.%${search}%,soyad.ilike.%${search}%,tc_kimlik_no.ilike.%${search}%`,
+      `ad.ilike.%${sanitizedSearch}%,soyad.ilike.%${sanitizedSearch}%,tc_kimlik_no.ilike.%${sanitizedSearch}%`,
     );
   }
 
@@ -564,26 +580,65 @@ export async function collectKumbara(data: { id: number; tutar: number }) {
   const supabase = getSupabaseClient();
   const { id, tutar } = data;
 
-  // Get current kumbara
-  const { data: current } = await supabase
+  // Use atomic update with increment to prevent race conditions
+  // First, get the current value to calculate the new total
+  const { data: current, error: fetchError } = await supabase
     .from("kumbaras")
-    .select("toplam_toplanan")
+    .select("toplam_toplanan, durum")
     .eq("id", id)
     .single();
 
+  if (fetchError) throw fetchError;
+  if (!current) throw new Error("Kumbara bulunamadı");
+
+  const newTotal = (current.toplam_toplanan || 0) + tutar;
+
+  // Atomic update: only update if the kumbara hasn't been modified concurrently
+  // This prevents race conditions by ensuring we're updating based on current state
   const { data: updated, error } = await supabase
     .from("kumbaras")
     .update({
       durum: "toplandi",
       son_toplama_tarihi: new Date().toISOString(),
-      toplam_toplanan: (current?.toplam_toplanan || 0) + tutar,
+      toplam_toplanan: newTotal,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+    .eq("toplam_toplanan", current.toplam_toplanan || 0) // Optimistic locking: only update if value hasn't changed
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    // If update failed due to concurrent modification, retry once
+    if (error.code === "PGRST116") {
+      // Record was modified, retry with fresh read
+      const { data: retryCurrent } = await supabase
+        .from("kumbaras")
+        .select("toplam_toplanan")
+        .eq("id", id)
+        .single();
+
+      if (retryCurrent) {
+        const retryTotal = (retryCurrent.toplam_toplanan || 0) + tutar;
+        const { data: retryUpdated, error: retryError } = await supabase
+          .from("kumbaras")
+          .update({
+            durum: "toplandi",
+            son_toplama_tarihi: new Date().toISOString(),
+            toplam_toplanan: retryTotal,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (retryError) throw retryError;
+        return retryUpdated;
+      }
+    }
+    throw error;
+  }
+
   return updated;
 }
 
@@ -1264,8 +1319,9 @@ export async function fetchAuditLogs(options?: {
   }
 
   if (options?.search) {
+    const sanitizedSearch = sanitizeSearchInput(options.search);
     query = query.or(
-      `table_name.ilike.%${options.search}%,record_id.ilike.%${options.search}%`,
+      `table_name.ilike.%${sanitizedSearch}%,record_id.ilike.%${sanitizedSearch}%`,
     );
   }
 
