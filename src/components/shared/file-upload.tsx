@@ -155,6 +155,7 @@ export function FileUpload({
               size="icon"
               onClick={handleRemove}
               disabled={disabled}
+              aria-label="Dosyayı kaldır"
             >
               <X className="h-4 w-4" />
             </Button>

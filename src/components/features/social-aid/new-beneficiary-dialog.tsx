@@ -173,6 +173,7 @@ export function NewBeneficiaryDialog({
             onClick={() => {
               onOpenChange(false)
             }}
+            aria-label="Dialogu kapat"
           >
             <X className="h-4 w-4" />
           </Button>

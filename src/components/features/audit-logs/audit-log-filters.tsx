@@ -82,16 +82,16 @@ export function AuditLogFilters({
         <div className="space-y-2">
           <Label htmlFor="tableName">Tablo</Label>
           <Select
-            value={filters.tableName || ""}
+            value={filters.tableName || "all"}
             onValueChange={(value) =>
-              handleFilterChange("tableName", value || undefined)
+              handleFilterChange("tableName", value === "all" ? undefined : value)
             }
           >
             <SelectTrigger id="tableName">
               <SelectValue placeholder="Tüm tablolar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tüm tablolar</SelectItem>
+              <SelectItem value="all">Tüm tablolar</SelectItem>
               {TABLE_NAMES.map((table) => (
                 <SelectItem key={table} value={table}>
                   {table}
@@ -104,16 +104,16 @@ export function AuditLogFilters({
         <div className="space-y-2">
           <Label htmlFor="action">İşlem</Label>
           <Select
-            value={filters.action || ""}
+            value={filters.action || "all"}
             onValueChange={(value) =>
-              handleFilterChange("action", value as AuditAction | undefined)
+              handleFilterChange("action", value === "all" ? undefined : value as AuditAction | undefined)
             }
           >
             <SelectTrigger id="action">
               <SelectValue placeholder="Tüm işlemler" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tüm işlemler</SelectItem>
+              <SelectItem value="all">Tüm işlemler</SelectItem>
               {ACTIONS.map((action) => (
                 <SelectItem key={action} value={action}>
                   {action}

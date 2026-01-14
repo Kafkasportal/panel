@@ -105,6 +105,7 @@ export function DocumentList({ beneficiaryId }: DocumentListProps) {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleDownload(doc)}
+                  aria-label={`${doc.fileName} dosyasını indir`}
                   title="İndir"
                 >
                   <Download className="h-4 w-4" />
@@ -119,6 +120,7 @@ export function DocumentList({ beneficiaryId }: DocumentListProps) {
                     })
                   }
                   disabled={deleteMutation.isPending}
+                  aria-label={`${doc.fileName} dosyasını sil`}
                   title="Sil"
                 >
                   <Trash2 className="h-4 w-4" />

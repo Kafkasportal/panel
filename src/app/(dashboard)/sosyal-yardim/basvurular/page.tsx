@@ -54,26 +54,28 @@ import {
 } from "@/components/ui/table";
 import { useApplications } from "@/hooks/use-api";
 import { AID_TYPE_LABELS, BASVURU_DURUMU_LABELS } from "@/lib/constants";
+import { BADGE_COLORS } from "@/lib/design-constants";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import type { BasvuruDurumu, SosyalYardimBasvuru, YardimTuru } from "@/types";
+import { EmptyState } from "@/components/shared/empty-state";
 
-// Durum badge renkleri - Modern SaaS palette
+// Durum badge renkleri - Design system'den semantic colors kullan
 const durumColors: Record<BasvuruDurumu, string> = {
-  beklemede: "bg-amber-500/15 text-amber-600 border-amber-500/25",
-  inceleniyor: "bg-sky-500/15 text-sky-600 border-sky-500/25",
-  onaylandi: "bg-emerald-500/15 text-emerald-600 border-emerald-500/25",
-  reddedildi: "bg-red-500/15 text-red-600 border-red-500/25",
-  odendi: "bg-teal-500/15 text-teal-600 border-teal-500/25",
+  beklemede: BADGE_COLORS.beklemede,
+  inceleniyor: BADGE_COLORS.inceleniyor,
+  onaylandi: BADGE_COLORS.onaylandi,
+  reddedildi: BADGE_COLORS.reddedildi,
+  odendi: BADGE_COLORS.odendi,
 };
 
-// Yardım türü badge renkleri - Modern SaaS palette
+// Yardım türü badge renkleri - Design system'den semantic colors kullan
 const yardimTuruColors: Record<YardimTuru, string> = {
-  nakdi: "bg-emerald-500/15 text-emerald-600 border-emerald-500/25",
-  ayni: "bg-sky-500/15 text-sky-600 border-sky-500/25",
-  egitim: "bg-violet-500/15 text-violet-600 border-violet-500/25",
-  saglik: "bg-red-500/15 text-red-600 border-red-500/25",
-  kira: "bg-amber-500/15 text-amber-600 border-amber-500/25",
-  fatura: "bg-teal-500/15 text-teal-600 border-teal-500/25",
+  nakdi: BADGE_COLORS.nakdi,
+  ayni: BADGE_COLORS.ayni,
+  egitim: BADGE_COLORS.egitim,
+  saglik: BADGE_COLORS.saglik,
+  kira: BADGE_COLORS.kira,
+  fatura: BADGE_COLORS.fatura,
 };
 
 export default function ApplicationsPage() {
@@ -200,7 +202,6 @@ export default function ApplicationsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="min-h-[44px] min-w-[44px] hover:bg-background"
               aria-label="Önceki sayfa"
               onClick={() => {
                 setPage((p) => Math.max(1, p - 1));
@@ -215,7 +216,6 @@ export default function ApplicationsPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="min-h-[44px] min-w-[44px] hover:bg-background"
               aria-label="Sonraki sayfa"
               onClick={() => {
                 setPage((p) => Math.min(totalPages, p + 1));
@@ -250,12 +250,7 @@ export default function ApplicationsPage() {
             </Button>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9"
-            aria-label="Ayarlar"
-          >
+          <Button variant="ghost" size="icon" aria-label="Ayarlar">
             <Settings className="h-4 w-4" />
           </Button>
         </div>
@@ -281,7 +276,9 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Beklemede</p>
-                <p className="text-2xl font-bold text-amber-600">{stats.beklemede}</p>
+                <p className="text-2xl font-bold text-amber-600">
+                  {stats.beklemede}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-amber-500/10 flex items-center justify-center">
                 <Clock className="h-5 w-5 text-amber-600" />
@@ -294,7 +291,9 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">İnceleniyor</p>
-                <p className="text-2xl font-bold text-sky-600">{stats.inceleniyor}</p>
+                <p className="text-2xl font-bold text-sky-600">
+                  {stats.inceleniyor}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-sky-500/10 flex items-center justify-center">
                 <AlertCircle className="h-5 w-5 text-sky-600" />
@@ -307,7 +306,9 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Onaylandı</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.onaylandi}</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {stats.onaylandi}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                 <CheckCircle className="h-5 w-5 text-emerald-600" />
@@ -320,7 +321,9 @@ export default function ApplicationsPage() {
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">Reddedildi</p>
-                <p className="text-2xl font-bold text-red-600">{stats.reddedildi}</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.reddedildi}
+                </p>
               </div>
               <div className="h-12 w-12 rounded-lg bg-red-500/10 flex items-center justify-center">
                 <XCircle className="h-5 w-5 text-red-600" />
@@ -332,7 +335,10 @@ export default function ApplicationsPage() {
 
       {/* Filtreleme Alanı */}
       <Accordion type="single" collapsible defaultValue="">
-        <AccordionItem value="filters" className="border border-border/50 rounded-xl">
+        <AccordionItem
+          value="filters"
+          className="border border-border/50 rounded-xl"
+        >
           <AccordionTrigger className="px-6">
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
@@ -545,11 +551,13 @@ export default function ApplicationsPage() {
             <TableBody>
               {filteredApplications.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={9}
-                    className="text-muted-foreground py-8 text-center"
-                  >
-                    Başvuru bulunamadı
+                  <TableCell colSpan={9}>
+                    <EmptyState
+                      variant="search"
+                      title="Başvuru bulunamadı"
+                      description="Arama kriterlerinize uygun başvuru bulunamadı."
+                      className="py-8"
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -566,8 +574,7 @@ export default function ApplicationsPage() {
                     <TableCell>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="min-h-[44px] min-w-[44px] h-8 w-8"
+                        size="icon-sm"
                         aria-label="Başvuru detaylarını görüntüle"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -630,8 +637,8 @@ export default function ApplicationsPage() {
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
-                            size="icon"
-                            className="min-h-[44px] min-w-[44px] h-8 w-8 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
+                            size="icon-sm"
+                            className="text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
                             aria-label="Başvuruyu onayla"
                             loading={approvingId === application.id}
                             disabled={rejectingId === application.id}
@@ -652,8 +659,8 @@ export default function ApplicationsPage() {
                           </Button>
                           <Button
                             variant="ghost"
-                            size="icon"
-                            className="min-h-[44px] min-w-[44px] h-8 w-8 text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
+                            size="icon-sm"
+                            className="text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700"
                             aria-label="Başvuruyu onayla"
                             loading={approvingId === String(application.id)}
                             disabled={rejectingId === String(application.id)}
@@ -674,8 +681,8 @@ export default function ApplicationsPage() {
                           </Button>
                           <Button
                             variant="ghost"
-                            size="icon"
-                            className="min-h-[44px] min-w-[44px] h-8 w-8 text-red-600 hover:bg-red-500/10 hover:text-red-700"
+                            size="icon-sm"
+                            className="text-red-600 hover:bg-red-500/10 hover:text-red-700"
                             aria-label="Başvuruyu reddet"
                             loading={rejectingId === String(application.id)}
                             disabled={approvingId === String(application.id)}
@@ -693,17 +700,6 @@ export default function ApplicationsPage() {
                             {rejectingId !== String(application.id) && (
                               <XCircle className="h-4 w-4" />
                             )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="min-h-[44px] min-w-[44px] h-8 w-8 text-red-600 hover:bg-red-500/10 hover:text-red-700"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Reddet işlemi
-                            }}
-                          >
-                            <XCircle className="h-4 w-4" />
                           </Button>
                         </div>
                       )}

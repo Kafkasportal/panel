@@ -111,6 +111,33 @@ export const GRADIENT = {
 } as const;
 
 /**
+ * 🎨 BADGE COLORS (Status Badge Renkleri)
+ * Semantic colors kullan - hardcoded colors kullanma!
+ */
+export const BADGE_COLORS = {
+  // Status colors
+  success: "bg-success/15 text-success border-success/25",
+  warning: "bg-warning/15 text-warning border-warning/25",
+  destructive: "bg-destructive/15 text-destructive border-destructive/25",
+  info: "bg-primary/15 text-primary border-primary/25",
+  
+  // Application status colors (semantic mapping)
+  beklemede: "bg-warning/15 text-warning border-warning/25",
+  inceleniyor: "bg-primary/15 text-primary border-primary/25",
+  onaylandi: "bg-success/15 text-success border-success/25",
+  reddedildi: "bg-destructive/15 text-destructive border-destructive/25",
+  odendi: "bg-success/15 text-success border-success/25",
+  
+  // Aid type colors (semantic mapping)
+  nakdi: "bg-success/15 text-success border-success/25",
+  ayni: "bg-primary/15 text-primary border-primary/25",
+  egitim: "bg-primary/15 text-primary border-primary/25",
+  saglik: "bg-destructive/15 text-destructive border-destructive/25",
+  kira: "bg-warning/15 text-warning border-warning/25",
+  fatura: "bg-primary/15 text-primary border-primary/25",
+} as const;
+
+/**
  * 🎯 UTILITY CLASSES (Yardımcı sınıflar)
  */
 export const UTILS = {

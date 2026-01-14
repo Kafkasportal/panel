@@ -469,6 +469,7 @@ export function YeniKumbaraDialog({
                                   description: newCode,
                                 });
                               }}
+                              aria-label="Yeni QR kod üret"
                               title="Yeni kod üret"
                             >
                               <RefreshCw className="h-4 w-4" />
@@ -576,6 +577,7 @@ export function YeniKumbaraDialog({
                           size="icon"
                           onClick={getCurrentLocation}
                           disabled={isGettingLocation}
+                          aria-label="Mevcut konumu al"
                         >
                           {isGettingLocation ? (
                             <Spinner />

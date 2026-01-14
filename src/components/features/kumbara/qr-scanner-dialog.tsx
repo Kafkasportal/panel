@@ -173,6 +173,7 @@ export function QRScannerDialog({
                                         variant="secondary"
                                         onClick={switchCamera}
                                         className="rounded-full"
+                                        aria-label="Kamerayı değiştir"
                                     >
                                         <SwitchCamera className="h-4 w-4" />
                                     </Button>
@@ -181,6 +182,7 @@ export function QRScannerDialog({
                                         variant="destructive"
                                         onClick={stopCamera}
                                         className="rounded-full"
+                                        aria-label="Kamerayı kapat"
                                     >
                                         <X className="h-4 w-4" />
                                     </Button>

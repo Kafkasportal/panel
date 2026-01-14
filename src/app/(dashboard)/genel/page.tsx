@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, FileText, Users } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
@@ -24,6 +24,7 @@ import {
 import { BASVURU_DURUMU_LABELS, STATUS_VARIANTS } from "@/lib/constants";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { EmptyState } from "@/components/shared/empty-state";
 
 export default function DashboardPage() {
   const { data: stats, isLoading, isError, refetch } = useDashboardStats();
@@ -186,10 +187,12 @@ export default function DashboardPage() {
                   </Link>
                 ))
               ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Bekleyen başvuru yok</p>
-                </div>
+                <EmptyState
+                  variant="no-data"
+                  title="Bekleyen başvuru yok"
+                  description="Şu anda bekleyen sosyal yardım başvurusu bulunmuyor."
+                  className="py-2"
+                />
               )}
             </div>
           </CardContent>
@@ -240,10 +243,12 @@ export default function DashboardPage() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  <Users className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Henüz üye kaydı yok</p>
-                </div>
+                <EmptyState
+                  variant="no-data"
+                  title="Henüz üye kaydı yok"
+                  description="Derneğe kayıtlı üye bulunmuyor."
+                  className="py-2"
+                />
               )}
             </div>
           </CardContent>

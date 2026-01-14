@@ -412,7 +412,7 @@ export default function ReportsPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       }}
-                      formatter={(value) => {
+                      formatter={(value: unknown) => {
                         const numValue = typeof value === 'number' ? value : 0
                         return [formatCurrency(numValue), 'Tutar'] as const
                       }}
@@ -480,7 +480,7 @@ export default function ReportsPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       }}
-                      formatter={(value) => {
+                      formatter={(value: unknown) => {
                         const numValue = typeof value === 'number' ? value : 0
                         return [formatCurrency(numValue), 'Tutar'] as const
                       }}
@@ -541,7 +541,7 @@ export default function ReportsPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       }}
-                      formatter={(value) => {
+                      formatter={(value: unknown) => {
                         const numValue = typeof value === 'number' ? value : 0
                         return [numValue, 'Adet'] as const
                       }}

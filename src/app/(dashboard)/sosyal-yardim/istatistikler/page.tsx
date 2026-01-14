@@ -200,7 +200,7 @@ export default function StatisticsPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       }}
-                      formatter={(value) => [`%${value}`, 'Oran']}
+                      formatter={(value: unknown) => [`%${value}`, 'Oran']}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -272,7 +272,7 @@ export default function StatisticsPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                       }}
-                      formatter={(value) => [value, 'Başvuru']}
+                      formatter={(value: unknown) => [value, 'Başvuru']}
                     />
                     <Bar
                       dataKey="count"

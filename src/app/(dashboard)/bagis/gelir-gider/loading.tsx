@@ -1,7 +1,6 @@
 import {
   PageLoadingSkeleton,
   TableLoadingSkeleton,
-  StatCardSkeleton,
 } from "@/components/shared/loading-state";
 
 export default function GelirGiderLoading() {

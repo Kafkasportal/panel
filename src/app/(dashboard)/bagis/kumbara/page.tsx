@@ -13,6 +13,7 @@ import { useMemo, useState } from "react";
 
 import { PageHeader } from "@/components/shared/page-header";
 import { QueryError } from "@/components/shared/query-error";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -263,8 +264,12 @@ function KumbaraGrid({
 }) {
   if (kumbaras.length === 0) {
     return (
-      <div className="text-muted-foreground py-12 text-center">
-        Bu kategoride kumbara bulunmuyor.
+      <div className="py-12">
+        <EmptyState
+          variant="no-data"
+          title="Kumbara bulunamadı"
+          description="Bu kategoride henüz kumbara bulunmuyor."
+        />
       </div>
     );
   }

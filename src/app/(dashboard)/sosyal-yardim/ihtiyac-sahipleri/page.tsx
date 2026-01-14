@@ -19,6 +19,7 @@ import { useState } from "react";
 
 import { NewBeneficiaryDialog } from "@/components/features/social-aid/new-beneficiary-dialog";
 import { QueryError } from "@/components/shared/query-error";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -413,11 +414,14 @@ export default function BeneficiariesPage() {
                 ))
               ) : filteredData.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={19}
-                    className="text-muted-foreground h-32 text-center"
-                  >
-                    Kayıt bulunamadı
+                  <TableCell colSpan={19} className="p-0">
+                    <div className="py-12">
+                      <EmptyState
+                        variant="search"
+                        title="Kayıt bulunamadı"
+                        description="Arama kriterlerinize uygun ihtiyaç sahibi bulunamadı."
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (

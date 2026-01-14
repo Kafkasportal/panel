@@ -1,7 +1,12 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Type assertions are necessary for recharts components with next/dynamic
+// due to incompatible defaultProps types between recharts and next/dynamic
+
 import dynamic from 'next/dynamic'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ComponentType } from 'react'
 
 // Recharts componentlerini lazy load et
 export const ResponsiveContainer = dynamic(
@@ -22,7 +27,7 @@ export const PieChart = dynamic(
 )
 
 export const Pie = dynamic(
-    () => import('recharts').then(mod => mod.Pie),
+    () => import('recharts').then(mod => mod.Pie as unknown as ComponentType<Record<string, unknown>>),
     { ssr: false }
 )
 
@@ -32,7 +37,7 @@ export const Cell = dynamic(
 )
 
 export const Tooltip = dynamic(
-    () => import('recharts').then(mod => mod.Tooltip),
+    () => import('recharts').then(mod => mod.Tooltip as unknown as ComponentType<Record<string, unknown>>),
     { ssr: false }
 )
 
@@ -42,17 +47,17 @@ export const BarChart = dynamic(
 )
 
 export const Bar = dynamic(
-    () => import('recharts').then(mod => mod.Bar),
+    () => import('recharts').then(mod => mod.Bar as any),
     { ssr: false }
 )
 
 export const XAxis = dynamic(
-    () => import('recharts').then(mod => mod.XAxis),
+    () => import('recharts').then(mod => mod.XAxis as any),
     { ssr: false }
 )
 
 export const YAxis = dynamic(
-    () => import('recharts').then(mod => mod.YAxis),
+    () => import('recharts').then(mod => mod.YAxis as any),
     { ssr: false }
 )
 
@@ -67,12 +72,12 @@ export const LineChart = dynamic(
 )
 
 export const Line = dynamic(
-    () => import('recharts').then(mod => mod.Line),
+    () => import('recharts').then(mod => mod.Line as any),
     { ssr: false }
 )
 
 export const Legend = dynamic(
-    () => import('recharts').then(mod => mod.Legend),
+    () => import('recharts').then(mod => mod.Legend as any),
     { ssr: false }
 )
 
@@ -82,6 +87,6 @@ export const AreaChart = dynamic(
 )
 
 export const Area = dynamic(
-    () => import('recharts').then(mod => mod.Area),
+    () => import('recharts').then(mod => mod.Area as any),
     { ssr: false }
 )
