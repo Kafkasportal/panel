@@ -1,369 +1,249 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
-import {
-  ArrowRight,
-  AlertCircle,
-  FileText,
-  TrendingUp,
-  UserPlus,
-  Users,
-  Wallet,
-  Activity,
-} from "lucide-react";
+import { ArrowRight, FileText, Users } from "lucide-react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
-// Lazy load chart component
-const AidDistributionChart = dynamic(
-  () =>
-    import("@/components/features/charts/aid-distribution-chart").then(
-      (mod) => {
-        return { default: mod.AidDistributionChart };
-      }
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[200px] w-full animate-pulse bg-muted rounded-lg" />
-    ),
-  }
-);
-
-import { PageHeader } from "@/components/shared/page-header";
-import { QueryError } from "@/components/shared/query-error";
-import { StatCard } from "@/components/shared/stat-card";
-import { EmptyState } from "@/components/shared/empty-state";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ChartLoadingSkeleton,
-  ListLoadingSkeleton,
-  StatCardSkeleton,
-} from "@/components/shared/loading-state";
-import { useApplications, useMembers, useDashboardStats } from "@/hooks/use-api";
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  useApplications,
+  useMembers,
+  useDashboardStats,
+} from "@/hooks/use-api";
 import { BASVURU_DURUMU_LABELS, STATUS_VARIANTS } from "@/lib/constants";
 import { formatCurrency, formatDate, getInitials } from "@/lib/utils";
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 
 export default function DashboardPage() {
-  const [isMounted, setIsMounted] = useState(false);
-
   const { data: stats, isLoading, isError, refetch } = useDashboardStats();
-
-  // Son başvurular
   const { data: applicationsData } = useApplications({
     page: 1,
-    limit: 5,
+    limit: 3,
     durum: "beklemede",
   });
-
-  // Son üyeler
-  const { data: membersData } = useMembers({ page: 1, limit: 5 });
-
-  // Memoize recent members to prevent recalculation
+  const { data: membersData } = useMembers({ page: 1, limit: 3 });
   const recentMembers = useMemo(
-    () => membersData?.data?.slice(0, 5) || [],
-    [membersData?.data]
+    () => membersData?.data?.slice(0, 3) || [],
+    [membersData?.data],
   );
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   if (isLoading || !stats) return <DashboardSkeleton />;
 
   if (isError) {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          title="Genel Bakış"
-          description="Dernek istatistikleri ve son aktiviteler"
-        />
-        <QueryError
-          title="Dashboard Yüklenemedi"
-          message="İstatistikler yüklenirken bir hata oluştu."
-          onRetry={refetch}
-        />
+      <div className="space-y-4">
+        <h1 className="text-2xl font-bold">Genel Bakış</h1>
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Dashboard Yüklenemedi
+            </CardTitle>
+            <CardDescription>
+              İstatistikler yüklenirken bir hata oluştu.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => refetch()}>Tekrar Dene</Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-in">
-      {/* Page Header - Simple */}
-      <PageHeader
-        title="Genel Bakış"
-        description="Dernek istatistikleri ve son aktiviteler"
-      />
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">Genel Bakış</h1>
 
-      {/* Main Stats Grid - Enhanced */}
-      <section aria-labelledby="stats-heading">
-        <h2 id="stats-heading" className="sr-only">
-          Önemli İstatistikler
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            label="Aktif Üye"
-            value={stats.activeMembers.toLocaleString("tr-TR")}
-            icon={Users}
-            trend={12.5}
-            trendLabel="geçen aya göre"
-          />
-          <StatCard
-            label="Bekleyen Başvuru"
-            value={stats.pendingApplications}
-            icon={AlertCircle}
-            variant="warning"
-            trend={-5.2}
-            trendLabel="geçen haftaya göre"
-          />
-          <StatCard
-            label="Bu Ay Ödenen Yardım"
-            value={formatCurrency(stats.monthlyAid)}
-            icon={Wallet}
-            trend={8.3}
-            trendLabel="geçen aya göre"
-          />
-          <StatCard
-            label="Toplam Bağış"
-            value={formatCurrency(stats.totalDonations || 0)}
-            icon={TrendingUp}
-            variant="success"
-            trend={15.7}
-            trendLabel="bu yıl"
-          />
-        </div>
-      </section>
-
-      {/* Charts Row - Full Width */}
-      <section aria-labelledby="charts-heading">
-        <h2 id="charts-heading" className="sr-only">
-          Grafikler ve Dağılımlar
-        </h2>
-        <Card className="border border-border/50 shadow-sm overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-            <div>
-              <CardTitle className="text-xl flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                  <Activity className="h-4 w-4 text-primary" />
-                </div>
-                Yardım Dağılımı
-              </CardTitle>
-              <p className="text-muted-foreground text-sm mt-1">
-                Yardım türlerine göre dağılım grafiği
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
-              <Link href="/sosyal-yardim/istatistikler">
-                Detaylar <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+      {/* Compact Stats */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs">Aktif Üye</CardDescription>
+            <CardTitle className="text-xl">
+              {stats.activeMembers?.toLocaleString("tr-TR") || "0"}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline" className="text-xs">
+                <IconTrendingUp className="w-3 h-3" />
+                +12.5%
+              </Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="flex h-auto min-h-[300px] w-full items-center justify-center aspect-[16/9] sm:aspect-[2/1] lg:min-h-[350px]">
-              {isMounted &&
-              !isLoading &&
-              stats?.aidDistribution &&
-              stats.aidDistribution.length > 0 ? (
-                <AidDistributionChart data={stats.aidDistribution} />
-              ) : (
-                <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                  <FileText className="h-12 w-12 opacity-30" />
-                  <p>Veri bulunamadı</p>
-                </div>
-              )}
-            </div>
-            {/* Enhanced Legend */}
-            <div className="mt-6 flex flex-wrap justify-center gap-6">
-              {stats.aidDistribution?.map((item, index) => (
-                <div key={index} className="flex items-center gap-2 group">
-                  <div
-                    className="h-3 w-3 rounded-full shadow-sm ring-2 ring-offset-2 ring-transparent group-hover:ring-primary/50 transition-all"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{item.name}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {item.value} kişi
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
         </Card>
-      </section>
 
-      {/* Recent Activity Grid */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Recent Applications */}
-        <Card className="border border-border/50 shadow-sm overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                  <FileText className="h-3.5 w-3.5 text-primary" />
-                </div>
-                Bekleyen Başvurular
-              </CardTitle>
-              <p className="text-muted-foreground text-xs mt-1">
-                İşleme alınmayı bekleyen başvurular
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
-              <Link href="/sosyal-yardim/basvurular">
-                Tümünü Gör <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs">
+              Bekleyen Başvuru
+            </CardDescription>
+            <CardTitle className="text-xl">
+              {stats.pendingApplications || "0"}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline" className="text-xs">
+                <IconTrendingDown className="w-3 h-3" />
+                -5.2%
+              </Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent className="pt-4">
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs">Bu Ay Ödenen</CardDescription>
+            <CardTitle className="text-xl">
+              {formatCurrency(stats.monthlyAid || 0)}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline" className="text-xs">
+                <IconTrendingUp className="w-3 h-3" />
+                +8.3%
+              </Badge>
+            </CardAction>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription className="text-xs">Toplam Bağış</CardDescription>
+            <CardTitle className="text-xl">
+              {formatCurrency(stats.totalDonations || 0)}
+            </CardTitle>
+            <CardAction>
+              <Badge variant="outline" className="text-xs">
+                <IconTrendingUp className="w-3 h-3" />
+                +15.7%
+              </Badge>
+            </CardAction>
+          </CardHeader>
+        </Card>
+      </div>
+
+      {/* Chart */}
+      <ChartAreaInteractive />
+
+      {/* Compact Lists */}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Bekleyen Başvurular</CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/sosyal-yardim/basvurular">
+                  Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-2">
               {applicationsData?.data && applicationsData.data.length > 0 ? (
-                applicationsData.data.slice(0, 5).map((application) => (
+                applicationsData.data.slice(0, 3).map((app) => (
                   <Link
-                    key={application.id}
-                    href={`/sosyal-yardim/basvurular/${application.id}`}
-                    className="group flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    key={app.id}
+                    href={`/sosyal-yardim/basvurular/${app.id}`}
+                    className="flex items-center justify-between rounded-lg border p-2 hover:bg-muted/50"
                   >
-                    <div className="flex items-center gap-3 flex-1">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
                           {getInitials(
-                            `${application.basvuranKisi.ad} ${application.basvuranKisi.soyad}`,
+                            `${app.basvuranKisi.ad} ${app.basvuranKisi.soyad}`,
                           )}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {application.basvuranKisi.ad}{" "}
-                          {application.basvuranKisi.soyad}
+                      <div>
+                        <p className="text-sm font-medium">
+                          {app.basvuranKisi.ad} {app.basvuranKisi.soyad}
                         </p>
-                        <p className="text-muted-foreground text-xs">
-                          {formatDate(application.createdAt)}
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(app.createdAt)}
                         </p>
                       </div>
                     </div>
-                    
                     <div className="flex items-center gap-2">
                       <Badge
-                        variant={
-                          STATUS_VARIANTS[application.durum] as
-                            | "default"
-                            | "secondary"
-                            | "destructive"
-                            | "outline"
-                            | "success"
-                            | "warning"
-                        }
+                        variant={STATUS_VARIANTS[app.durum] as any}
                         className="text-xs"
                       >
-                        {BASVURU_DURUMU_LABELS[application.durum]}
+                        {BASVURU_DURUMU_LABELS[app.durum]}
                       </Badge>
                       <span className="text-sm font-semibold">
-                        {formatCurrency(application.talepEdilenTutar || 0)}
+                        {formatCurrency(app.talepEdilenTutar || 0)}
                       </span>
                     </div>
                   </Link>
                 ))
               ) : (
-                <EmptyState
-                  icon={FileText}
-                  title="Bekleyen başvuru yok"
-                  description="Tüm başvurular işleme alındı"
-                  actionLabel="Tüm Başvuruları Gör"
-                  actionHref="/sosyal-yardim/basvurular"
-                />
+                <div className="text-center py-4 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Bekleyen başvuru yok</p>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Recent Members */}
-        <Card className="border border-border/50 shadow-sm overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
-            <div>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
-                  <UserPlus className="h-3.5 w-3.5 text-primary" />
-                </div>
-                Son Kayıt Olan Üyeler
-              </CardTitle>
-              <p className="text-muted-foreground text-xs mt-1">
-                Derneğe yeni katılan üyeler
-              </p>
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base">Son Üyeler</CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/uyeler/liste">
+                  Tümü <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
-              <Link href="/uyeler/liste">
-                Tümünü Gör <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent>
             <div className="space-y-2">
               {recentMembers.length > 0 ? (
                 recentMembers.map((member) => (
                   <div
                     key={member.id}
-                    className="group flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    className="flex items-center justify-between rounded-lg border p-2"
                   >
-                    <div className="flex items-center gap-3 flex-1">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
                           {getInitials(`${member.ad} ${member.soyad}`)}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                      <div>
+                        <p className="text-sm font-medium">
                           {member.ad} {member.soyad}
                         </p>
-                        <p className="text-muted-foreground text-xs">
-                          {member.uyeNo} • {formatDate(member.createdAt)}
+                        <p className="text-xs text-muted-foreground">
+                          {member.uyeNo}
                         </p>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={member.uyeTuru === "aktif" ? "success" : "outline"}
-                        className="text-xs"
-                      >
-                        {member.uyeTuru === "aktif"
-                          ? "Aktif"
-                          : member.uyeTuru === "genc"
-                            ? "Genç"
-                            : member.uyeTuru === "onursal"
-                              ? "Onursal"
-                              : "Destekci"}
-                      </Badge>
-                    </div>
+                    <Badge
+                      variant={
+                        member.uyeTuru === "aktif" ? "default" : "outline"
+                      }
+                      className="text-xs"
+                    >
+                      {member.uyeTuru === "aktif" ? "Aktif" : member.uyeTuru}
+                    </Badge>
                   </div>
                 ))
               ) : (
-                <EmptyState
-                  variant="no-data"
-                  title="Henüz üye kaydı yok"
-                  description="Yeni üye eklemek için başlayın"
-                  action={
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href="/uyeler/yeni">Yeni Üye Ekle</Link>
-                    </Button>
-                  }
-                />
+                <div className="text-center py-4 text-muted-foreground">
+                  <Users className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Henüz üye kaydı yok</p>
+                </div>
               )}
             </div>
           </CardContent>
@@ -373,33 +253,32 @@ export default function DashboardPage() {
   );
 }
 
-
-// Enhanced Loading Skeleton
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 animate-in">
-      {/* Hero Skeleton */}
-      <div className="relative overflow-hidden rounded-2xl border p-8">
-        <div className="space-y-4">
-          <div className="h-8 w-48 bg-muted rounded-md animate-pulse" />
-          <div className="h-4 w-96 bg-muted rounded-md animate-pulse" />
-        </div>
-      </div>
-
-      {/* Stat Cards - 4 columns */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-4">
+      <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <StatCardSkeleton key={i} showTrend />
+          <Card key={i}>
+            <CardHeader>
+              <div className="h-16 bg-muted rounded animate-pulse" />
+            </CardHeader>
+          </Card>
         ))}
       </div>
-
-      {/* Chart Card */}
-      <ChartLoadingSkeleton height={400} showLegend />
-
-      {/* Bottom Cards Grid */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <ListLoadingSkeleton items={5} showAvatar showBadge />
-        <ListLoadingSkeleton items={5} showAvatar showBadge />
+      <Card>
+        <CardContent className="p-6">
+          <div className="h-[300px] bg-muted rounded animate-pulse" />
+        </CardContent>
+      </Card>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="h-40 bg-muted rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );
