@@ -168,11 +168,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
+              className="data-[slot=sidebar-menu-button]:h-8!"
             >
               <a href="/">
-                <IconInnerShadowTop className="size-5!" />
-                <span className="text-base font-semibold">Kafkasder Panel</span>
+                <IconInnerShadowTop className="size-4!" />
+                <span className="text-sm font-semibold">Kafkasder Panel</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
