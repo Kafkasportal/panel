@@ -331,7 +331,7 @@ export default function EventsPage() {
       {/* İstatistikler */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Toplam Etkinlik</p>
@@ -345,7 +345,7 @@ export default function EventsPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Planlanan</p>
@@ -361,7 +361,7 @@ export default function EventsPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">
@@ -379,7 +379,7 @@ export default function EventsPage() {
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Toplam Bütçe</p>

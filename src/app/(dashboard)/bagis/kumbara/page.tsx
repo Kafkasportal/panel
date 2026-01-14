@@ -137,7 +137,7 @@ export default function KumbaraPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="bg-primary/10 rounded-xl p-3">
                 <PiggyBank className="text-primary h-6 w-6" />
@@ -150,7 +150,7 @@ export default function KumbaraPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="bg-success/10 rounded-xl p-3">
                 <PiggyBank className="text-success h-6 w-6" />
@@ -163,7 +163,7 @@ export default function KumbaraPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="bg-chart-4/10 rounded-xl p-3">
                 <Banknote className="text-chart-4 h-6 w-6" />
@@ -178,7 +178,7 @@ export default function KumbaraPage() {
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-6">
+          <CardContent>
             <div className="flex items-center gap-4">
               <div className="bg-chart-2/10 rounded-xl p-3">
                 <History className="text-chart-2 h-6 w-6" />
